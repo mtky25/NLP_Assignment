@@ -49,8 +49,8 @@ def main():
     for comp in competitions:
         print(f"  {comp.id}: {comp.name} ({comp.max_levels} questions)")
     
-    N_GAMES = 5
-    COMP_ID = 3
+    N_GAMES = 10
+    COMP_ID = 1
     run_games(client, guesser, N_GAMES, COMP_ID)
 
 if __name__ == "__main__":
