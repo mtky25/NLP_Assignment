@@ -1,9 +1,9 @@
-from src.guesser.engine.llmprovider import get_llm
-from src.guesser.engine.prompts import MCQ_PROMPT
-
+from Marcelo.src.guesser.engine.llmprovider import get_llm
+from Marcelo.src.guesser.engine.prompts import MCQ_PROMPT
+from src.millionaire_client.models import Question
 class GuesserEngine:
     
-    def __init__(self, index, llm_model="llama3.2:2b",top_k=5,temperature=0.1,prompt=MCQ_PROMPT):
+    def __init__(self, index, llm_model="llama3.2:2b",top_k=5,temperature=0.0,prompt=MCQ_PROMPT):
         self.llm = get_llm(
             model_name=llm_model,
             temperature=temperature
@@ -14,8 +14,9 @@ class GuesserEngine:
             prompt=MCQ_PROMPT
         )
 
-    def answer_question(self, question_text):
-        response = self.engine.query(question_text)
+    def answer_question(self, question):
+
+        response = self.engine.query(question)
         fonts = []
         resolution = []
         

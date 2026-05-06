@@ -1,5 +1,5 @@
 CHROMA_DB_PATH="./context_db"
-INFERENCE_MODEL="phi3.5"
+INFERENCE_MODEL="llama3.2"
 EMBEDDING_MODEL="nomic-embed-text"
 
 CHUNK_SIZE=512
