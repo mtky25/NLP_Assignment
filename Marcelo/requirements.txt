@@ -5,3 +5,10 @@ numpy==1.26.4
 pandas
 openpyxl
 python-dotenv
+libzim
+pprint
+bs4
+llama-index-embeddings-huggingface
+llama-index-embeddings-ollama
+llama-index-vector-stores-chroma
+datasets

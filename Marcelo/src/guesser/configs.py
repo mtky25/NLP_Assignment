@@ -1,0 +1,6 @@
+CHROMA_DB_PATH="./context_db"
+INFERENCE_MODEL="phi3.5"
+EMBEDDING_MODEL="nomic-embed-text"
+
+CHUNK_SIZE=512
+CHUNK_OVERLAP=50

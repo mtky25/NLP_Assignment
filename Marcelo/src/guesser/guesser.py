@@ -8,8 +8,6 @@ class Guesser:
         self.questions = []
         self.answers = [] 
         
-        print(f"Using Ollama model: {model_name}")
-
     def add_question(self, question):
         self.questions.append(question)
 
