@@ -2,7 +2,7 @@ from libzim.reader import Archive
 from llama_index.core import Document 
 import bs4
 import pprint
-from extractors.extractor import BaseExtractor
+from src.guesser.ingestion.extractors.extractor import BaseExtractor
 
 
 class ZimExtractor(BaseExtractor):

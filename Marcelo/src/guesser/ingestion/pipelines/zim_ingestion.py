@@ -1,4 +1,4 @@
-from Marcelo.src.guesser.ingestion.extractors.zim_extractor import ZimExtractor
+from src.guesser.ingestion.extractors.zim_extractor import ZimExtractor
 from src.guesser.ingestion.chunking import Chunker
 from src.guesser.ingestion.loader import Loader
 
@@ -8,13 +8,13 @@ class ZimIngestionPipeline:
         self.extractor = ZimExtractor(raw_data_file_path)
         self.loader = Loader(
                             db_path=db_path,
-                            model_name=embedding_model,
-                            collection_name=colletion_name)
+                            embedding_model_name=embedding_model,
+                            )
 
     def process(self, limit=10, starting_id=0):
         batch_nodes = []
         print("Starting extraction and chunking...")
-        for doc in self.extractor.extract_articles(limit=limit, starting_id=starting_id):
+        for doc in self.extractor.extract(limit=limit, starting_id=starting_id):
             chunker = Chunker(doc)
             chunker.chunk_article()
             batch_nodes.extend(chunker.all_nodes)   

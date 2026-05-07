@@ -3,6 +3,8 @@ from typing import Dict, Any
 import pprint
 from src.millionaire_client.models import Question
 from src.models import ExperimentConfig
+
+
 class Guesser(ABC):     
     """
     Generic interface for all Guessers.
@@ -15,9 +17,9 @@ class Guesser(ABC):
 
     def print(self):
         pprint.pprint(self.config)
- 
+
     @abstractmethod
-    def infer_answer(self, question: Question) -> int:
+    def infer_answer(self, question: Question,theme: str) -> int:
         pass
     
     def format_question_for_llm(self, question: Question) -> str:

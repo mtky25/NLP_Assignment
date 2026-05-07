@@ -30,7 +30,7 @@ class Game:
             try:
                 print("\nGuesser is thinking...")
                 start_t = time.time()
-                answer_id = self.guesser.infer_answer(question)
+                answer_id = self.guesser.infer_answer(question,self.game.state.competition.name)
                 duration = time.time() - start_t
                 print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s)")
             except Exception as e:
