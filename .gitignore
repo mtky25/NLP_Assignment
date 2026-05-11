@@ -208,4 +208,4 @@ __marimo__/
 # Custom Project Ignores
 Marcelo/src/guesser/data/**
 Marcelo/src/guesser/context_db/chroma.sqlite3
-Marcelo/src/guesser/context_db/*/
+#Marcelo/src/guesser/context_db/*/

@@ -9,6 +9,7 @@ GENERAL_MCQ_PROMPT_STR = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "CRITICAL: Find the correct option index (0, 1, 2, or 3).\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
     "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
     "Final Option Index: "
 )
@@ -23,6 +24,7 @@ QA_PROMPT_TMPL_STR_MATHS = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "CRITICAL: Read the resolution in the context. Find the final numerical result.\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
     "Match that result to the correct option index (0, 1, 2, or 3).\n"
     "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
     "Final Option Index: "
@@ -39,6 +41,7 @@ QA_PROMPT_TMPL_STR_ENTERTAINMENT = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_ENTERTAINMENT = PromptTemplate(QA_PROMPT_TMPL_STR_ENTERTAINMENT)
@@ -53,6 +56,7 @@ QA_PROMPT_TMPL_STR_SCIENCE_NATURE = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_SCIENCE_NATURE = PromptTemplate(QA_PROMPT_TMPL_STR_SCIENCE_NATURE)
@@ -67,6 +71,7 @@ QA_PROMPT_TMPL_STR_HISTORY_POLITICS = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_HISTORY_POLITICS = PromptTemplate(QA_PROMPT_TMPL_STR_HISTORY_POLITICS)

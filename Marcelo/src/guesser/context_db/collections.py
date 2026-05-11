@@ -1,5 +1,5 @@
 COLLECTION_ENTERTAINMENT = "entertainment"
 COLLECTION_HISTORY = "history_politics"
 COLLECTION_MATH = "maths"
-COLLECTION_SCIENCE = "science_nature"
+COLLECTION_SCIENCE = "science_and_nature"
 COLLECTION_DEFAULT = "general_knowledge"

@@ -13,6 +13,8 @@ class Guesser(ABC):
         if not isinstance(config, ExperimentConfig):
             raise ValueError(f"config must be a {type(ExperimentConfig)}")
         self.config = config
+        self.search_time: float = 0.0
+        self.reasoning_time: float = 0.0
 
 
     def print(self):

@@ -1,4 +1,4 @@
-from Marcelo.src.guesser.ingestion.extractors.zim_extractor import ZimExtractor
+from src.guesser.ingestion.extractors.zim_extractor import ZimExtractor
 from src.guesser.ingestion.chunking import Chunker
 from src.guesser.ingestion.loader import Loader
 from abc import ABC,abstractmethod
