@@ -83,12 +83,14 @@ def run_debug_chat(question_text: str, options: list, theme: str = COLLECTION_HI
 if __name__ == "__main__":
     # EXAMPLE USAGE
     # You can change these to test specific RAG scenarios
-    test_q = "Who was John Cloake?"
+    test_q = "Q: Statement 1 | Every group of order 42 has a normal subgroup of order 7. Statement 2 | Every group of order 42 has a normal subgroup of order 8."
     test_opts = [
-        "A) Historian and author",
-        "B) Musician",
-        "C) Football Player",
-        "D) Adventurer"
+        "[0] False, True",
+        "[1] False, False",
+        "[2] True, False",
+        "[3] True, True",
     ]
     
-    run_debug_chat(test_q, test_opts, theme=COLLECTION_HISTORY)
+
+    
+    run_debug_chat(test_q, test_opts, theme=COLLECTION_MATH)

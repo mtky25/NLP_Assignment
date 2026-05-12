@@ -13,7 +13,14 @@ if marcelo_root not in sys.path:
     sys.path.append(marcelo_root)
 
 from src.guesser.ingestion.pipelines.dataset_ingestion import DatasetIngestionPipeline
-from src.guesser.ingestion.extractors.configs import HF_SCIENCE_DATASET, HF_MATH_DATASET, HF_ANCIENT_HISTORY_DATASET,HF_ENTERTAINMENT_DATASET
+from src.guesser.ingestion.extractors.configs import (
+    HF_SCIENCE_DATASET, 
+    HF_MATH_GSM8K_DATASET,
+    HF_MATH500_DATASET,
+    HF_ANCIENT_HISTORY_DATASET,
+    HF_ENTERTAINMENT_DATASET
+)
+
 from src.guesser.configs import EMBEDDING_MODEL
 from src.guesser.context_db.collections import (
     COLLECTION_MATH,
@@ -28,14 +35,17 @@ async def dataset_mass_ingest():
     # Configuration: (dataset_config, collection_name, limit)
     tasks = [
         # Science (SciQ)
-        #(HF_SCIENCE_DATASET, COLLECTION_SCIENCE, 1000),
+        #(HF_SCIENCE_DATASET, COLLECTION_SCIENCE, 20000),
         
         # Maths (GSM8K)
-        #(HF_MATH_DATASET, COLLECTION_MATH, 1000),
+        #(HF_MATH_GSM8K_DATASET, COLLECTION_MATH, 10000),
+        #(HF_MATH500_DATASET, COLLECTION_MATH, 10000),
 
         # Ancient History
-        (HF_ANCIENT_HISTORY_DATASET, COLLECTION_HISTORY, 12000),
-        #(HF_ENTERTAINMENT_DATASET,COLLECTION_ENTERTAINMENT, 50000)
+        #(HF_ANCIENT_HISTORY_DATASET, COLLECTION_HISTORY, 12000),
+        
+        # Entertainment
+        (HF_ENTERTAINMENT_DATASET,COLLECTION_ENTERTAINMENT, 50000)
     ]
 
     print(f"Starting Dataset Mass Ingestion into: {db_path}")

@@ -17,17 +17,22 @@ GENERAL_MCQ_PROMPT_STR = (
 MCQ_PROMPT = PromptTemplate(GENERAL_MCQ_PROMPT_STR)
 
 QA_PROMPT_TMPL_STR_MATHS = (
-    "You are an expert math problem solver. Use the context to solve the question.\n"
-    "--- CONTEXT ---\n"
+    "You are an elite mathematician solving a multiple-choice quiz.\n"
+    "--- CONTEXT (Similar Problem & Method) ---\n"
     "{context}\n"
     "----------------\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
-    "CRITICAL: Read the resolution in the context. Find the final numerical result.\n"
-    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
-    "Match that result to the correct option index (0, 1, 2, or 3).\n"
-    "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
-    "Final Option Index: "
+    "INSTRUCTIONS:\n"
+    "1. Analyze the method used in the CONTEXT.\n"
+    "2. Use the <scratchpad> space to think step-by-step and perform calculations. You MUST write your calculations out.\n"
+    "3. After finishing your calculations, match your final result with one of the options (0, 1, 2, or 3).\n\n"
+    "OUTPUT FORMAT:\n"
+    "Your output must be EXACTLY in this format, with no extra text after the final index:\n"
+    "<scratchpad>\n"
+    "[Your step-by-step logic here]\n"
+    "</scratchpad>\n"
+    "FINAL_INDEX: [0, 1, 2, or 3]"
 )
 MCQ_PROMPT_MATHS = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS)
 

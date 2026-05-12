@@ -53,9 +53,17 @@ class MarceloGuesser(Guesser):
             self.reasoning_time = result.get('reasoning_time', 0.0)
 
             raw = result["answer"].strip()
+            
+            # 1. Try to find the structured FINAL_INDEX (new math format)
+            match = re.search(r"FINAL_INDEX:\s*([0-3])", raw)
+            if match:
+                return int(match.group(1))
+            
+            # 2. Fallback to general digit search (original behavior for other themes)
             match = re.search(r"[0-3]", raw)
             if match:
                 return int(match.group())
+            
             raise ValueError(f"Could not extract answer digit from: {raw[:80]}")
         except Exception:
             # Capture partial times from engine even on failure/timeout

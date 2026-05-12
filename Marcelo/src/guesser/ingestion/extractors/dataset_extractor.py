@@ -49,7 +49,22 @@ class DatasetExtractor(BaseExtractor):
             if skip_item:
                 continue
 
-            text = str(item.get(self.configs["col_text"], ""))
+            # Handle col_text as a single string or a list of columns
+            col_text_config = self.configs.get("col_text", "")
+            
+            if isinstance(col_text_config, list):
+                # Combine multiple columns into one text block
+                text_parts = []
+                for col in col_text_config:
+                    col_val = str(item.get(col, "")).strip()
+                    if col_val:
+                        # Capitalize first letter of col name for better formatting
+                        label = col.replace("_", " ").title()
+                        text_parts.append(f"{label}: {col_val}")
+                text = "\n".join(text_parts)
+            else:
+                # Original behavior for single column
+                text = str(item.get(col_text_config, ""))
 
             if not text.strip():
                 continue
