@@ -27,18 +27,28 @@ class Game:
             
             # Automated Guessing
             duration = 0.0
+            start_t = time.time()
             try:
                 print("\nGuesser is thinking...")
-                start_t = time.time()
-                answer_id = self.guesser.infer_answer(question)
+                answer_id = self.guesser.infer_answer(question,self.game.state.competition.name)
                 duration = time.time() - start_t
-                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s)")
+                
+                # Retrieve separated metrics if available
+                search_time = getattr(self.guesser, 'search_time', 0.0)
+                reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
+                
+                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
             except Exception as e:
-                print(f"Inference error: {e}")
+                duration = time.time() - start_t
+                search_time = getattr(self.guesser, 'search_time', 0.0)
+                reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
+                print(f"Inference error: {e} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
                 self.results.append(QuestionResult(
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.ERROR,
                     answer_time=duration,
+                    search_time=search_time,
+                    reasoning_time=reasoning_time,
                     level=self.game.state.current_level,
                 ))
                 break
@@ -52,6 +62,8 @@ class Game:
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.CORRECT,
                     answer_time=duration,
+                    search_time=search_time,
+                    reasoning_time=reasoning_time,
                     level=self.game.state.current_level,
                 )
             elif result.timed_out:
@@ -59,6 +71,8 @@ class Game:
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.TIMEOUT,
                     answer_time=duration,
+                    search_time=search_time,
+                    reasoning_time=reasoning_time,
                     level=self.game.state.current_level,
                 )
             else:
@@ -66,12 +80,19 @@ class Game:
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.INCORRECT,
                     answer_time=duration,
+                    search_time=search_time,
+                    reasoning_time=reasoning_time,
                     level=self.game.state.current_level,
                 )
             self.results.append(question_result)
             if result.game_over:
                 status = result.status
-                status_text = status.value if hasattr(status, "value") else str(status)
+                if status is None:
+                    # Fallback for when result.status is None (e.g. incorrect answer causing game over)
+                    status_text = "INCORRECT" if result.correct is False else "FINISHED"
+                else:
+                    status_text = status.value if hasattr(status, "value") else str(status)
+                
                 if result.correct:
                     print(f"CONGRATULATIONS! Final earnings: ${result.earned_amount:,.2f}")
                 else:

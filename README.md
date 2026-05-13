@@ -396,7 +396,7 @@ A complete RAG-based implementation is available in the `Marcelo/` folder. It us
 You can import and use it as follows (after building the ChromaDB collection):
 
 ```python
-from Marcelo.src.guesser.guesser import MarceloGuesser
+from Marcelo.src.guesser.marcelo_guesser import MarceloGuesser
 from src.models import ExperimentConfig, ApproachType
 
 config = ExperimentConfig(

@@ -1,39 +1,82 @@
 from llama_index.core import PromptTemplate
 
-QA_PROMPT_TMPL_STR = (
-    "Context:\n"
-    "---------------------\n"
-    "{context_str}\n"
-    "---------------------\n\n"
-    "{query_str}\n\n"
-    "Examples of correct output format:\n"
-    "Question: Who painted the Mona Lisa?\n"
-    "[0] Michelangelo [1] Leonardo da Vinci [2] Raphael [3] Caravaggio\n"
-    "Answer: 1\n\n"
-    "Question: What is the chemical symbol for water?\n"
-    "[0] CO2 [1] NaCl [2] H2O [3] O2\n"
-    "Answer: 2\n\n"
-    "Question: Which planet is closest to the Sun?\n"
-    "[0] Venus [1] Earth [2] Mars [3] Mercury\n"
-    "Answer: 3\n\n"
-    "WRONG: 'Leonardo da Vinci painted it because...'\n"
-    "CORRECT: 1\n\n"
-    "RULE: Reply with ONLY the single digit (0, 1, 2, or 3). No words. No punctuation. No explanation.\n"
-    "Answer: "
+# A general prompt template that can be used as a base or default
+GENERAL_MCQ_PROMPT_STR = (
+    "You are an expert assistant. Use the following context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "CRITICAL: Find the correct option index (0, 1, 2, or 3).\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
+    "Final Option Index: "
 )
 
-MCQ_PROMPT = PromptTemplate(QA_PROMPT_TMPL_STR)
+MCQ_PROMPT = PromptTemplate(GENERAL_MCQ_PROMPT_STR)
 
 QA_PROMPT_TMPL_STR_MATHS = (
-    "You are an expert math problem solver. Use the context to solve the question.\n"
-    "--- CONTEXT ---\n"
-    "{context_str}\n"
+    "You are an elite mathematician solving a multiple-choice quiz.\n"
+    "--- CONTEXT (Similar Problem & Method) ---\n"
+    "{context}\n"
     "----------------\n"
-    "QUESTION:\n{query_str}\n\n"
-    "CRITICAL: Read the resolution in the context. Find the final numerical result.\n"
-    "Match that result to the correct option index (0, 1, 2, or 3).\n"
-    "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
-    "Final Option Index: " # Isso aqui é o 'Anchor' - o modelo tende a completar apenas com o número
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "INSTRUCTIONS:\n"
+    "1. Analyze the method used in the CONTEXT.\n"
+    "2. Use the <scratchpad> space to think step-by-step and perform calculations. You MUST write your calculations out.\n"
+    "3. After finishing your calculations, match your final result with one of the options (0, 1, 2, or 3).\n\n"
+    "OUTPUT FORMAT:\n"
+    "Your output must be EXACTLY in this format, with no extra text after the final index:\n"
+    "<scratchpad>\n"
+    "[Your step-by-step logic here]\n"
+    "</scratchpad>\n"
+    "FINAL_INDEX: [0, 1, 2, or 3]"
 )
-
 MCQ_PROMPT_MATHS = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS)
+
+#---------
+
+QA_PROMPT_TMPL_STR_ENTERTAINMENT = (
+    "You are an expert in entertainment and pop culture. Use the context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_ENTERTAINMENT = PromptTemplate(QA_PROMPT_TMPL_STR_ENTERTAINMENT)
+
+#---------
+
+QA_PROMPT_TMPL_STR_SCIENCE_NATURE = ( 
+    "You are an expert in science and nature. Use the context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_SCIENCE_NATURE = PromptTemplate(QA_PROMPT_TMPL_STR_SCIENCE_NATURE)
+
+#---------
+
+QA_PROMPT_TMPL_STR_HISTORY_POLITICS = (
+    "You are an expert in history and politics. Use the context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
+    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_HISTORY_POLITICS = PromptTemplate(QA_PROMPT_TMPL_STR_HISTORY_POLITICS)

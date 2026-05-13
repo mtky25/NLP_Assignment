@@ -60,6 +60,11 @@ Use the `ZimIngestionPipeline` located in `src/guesser/ingestion/pipelines/zim_i
 ### 2. Dataset Ingestion
 Use the `DatasetIngestionPipeline` in `src/guesser/ingestion/pipelines/dataset_ingestion.py` to ingest data from Hugging Face datasets like `sciq` or `gsm8k`.
 
+You can also use `dataset_mass_ingest.py` to ingest multiple datasets at once:
+```bash
+python Marcelo/dataset_mass_ingest.py
+```
+
 ## 📜 Development Contracts
 
 ### Guesser Contract
