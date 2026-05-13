@@ -21,7 +21,7 @@ class Guesser(ABC):
         pprint.pprint(self.config)
 
     @abstractmethod
-    def infer_answer(self, question: Question,theme: str) -> int:
+    def infer_answer(self, question: Question, theme: str, game_session: Any = None) -> int:
         pass
     
     def format_question_for_llm(self, question: Question) -> str:

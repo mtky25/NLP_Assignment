@@ -30,7 +30,7 @@ class Game:
             start_t = time.time()
             try:
                 print("\nGuesser is thinking...")
-                answer_id = self.guesser.infer_answer(question,self.game.state.competition.name)
+                answer_id = self.guesser.infer_answer(question, self.game.state.competition.name, game_session=self.game)
                 duration = time.time() - start_t
                 
                 # Retrieve separated metrics if available

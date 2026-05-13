@@ -1,29 +1,73 @@
-from .client import MillionaireClient
+"""
+Poli-Millionaire Python Client
 
-__all__ = ["MillionaireClient"]
+A modular Python client for interacting with the Poli-Millionaire quiz game API.
+Students can use this to programmatically play the game and build automated answering systems.
 
-def quick_start():
-    """example usage of the library."""
-    import os
+Basic Usage:
+    from millionaire_client import MillionaireClient
     
-    api_url = "http://131.175.15.22:51111/"
-    username = os.getenv("POLI_USERNAME", "")
-    password = os.getenv("POLI_PASSWORD", "")
+    client = MillionaireClient("http://localhost:4000")
+    client.login("username", "password")
     
-    client = MillionaireClient(api_url)
-    client.login(username, password)
-    
-    # start a game
+    # Start a game
     game = client.game.start(competition_id=1)
     
-    # answer questions
+    # Answer questions
     while game.in_progress:
         question = game.current_question
-        print(f"q: {question.text}")
+        print(f"Q: {question.text}")
         for opt in question.options:
             print(f"  {opt.id}: {opt.text}")
-            
-        # your answering logic here
-        answer_id = question.options[0].id
-        result = game.answer(answer_id)
-        print(f"correct: {result.correct}")
+        
+        # Your answering logic here
+        result = game.answer(option_id=1)
+        print(f"Correct: {result.correct}")
+"""
+
+from .client import MillionaireClient
+from .models import (
+    User,
+    Competition,
+    Question,
+    Option,
+    GameState,
+    AnswerResult,
+    MoneyLevel,
+    LeaderboardEntry,
+    CompetitionConfig,
+)
+from .game import GameSession
+from .exceptions import (
+    MillionaireError,
+    AuthenticationError,
+    GameError,
+    TimeoutError,
+    ValidationError,
+    NotFoundError,
+    ServerError,
+    RateLimitError,
+)
+
+__version__ = "1.0.0"
+__all__ = [
+    "MillionaireClient",
+    "User",
+    "Competition",
+    "Question",
+    "Option",
+    "GameSession",
+    "GameState",
+    "AnswerResult",
+    "MoneyLevel",
+    "LeaderboardEntry",
+    "CompetitionConfig",
+    "MillionaireError",
+    "AuthenticationError",
+    "GameError",
+    "TimeoutError",
+    "ValidationError",
+    "NotFoundError",
+    "ServerError",
+    "RateLimitError",
+]
