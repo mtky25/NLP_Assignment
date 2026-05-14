@@ -66,6 +66,9 @@ class ExperimentConfig:
 @dataclass
 class QuestionResult:
     theme: str = ""
+    question_text: str = ""
+    options: str = ""
+    correct_answer: str = ""
     question_outcome: QuestionOutcome = QuestionOutcome.ERROR
     answer_time: float = 0.0
     search_time: float = 0.0

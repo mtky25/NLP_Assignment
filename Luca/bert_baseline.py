@@ -69,7 +69,8 @@ def play_baseline():
         username="Luca",
         notes="BERT baseline",
         #approach="SentenceTransformer",
-        embedding_model="nomic-ai/modernbert-embed-base",
+        #embedding_model="nomic-ai/modernbert-embed-base",
+        embedding_model="nomic-ai/nomic-embed-text-v1.5", # medium large
         #embedding_model_size=0,
         is_rag=False,
     )

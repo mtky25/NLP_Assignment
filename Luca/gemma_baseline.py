@@ -1,16 +1,9 @@
 import torch
 import os
-import sys
 import time
 from typing import Any
 from transformers import AutoTokenizer, AutoModelForCausalLM, StoppingCriteria, StoppingCriteriaList
 from dotenv import load_dotenv
-
-# Ensure we can import from the root src directory
-project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-if project_root not in sys.path:
-    sys.path.append(project_root)
-
 from src.guesser.guesser import Guesser
 from src.models import ExperimentConfig, ApproachType
 from src.millionaire_client.models import Question
@@ -138,7 +131,7 @@ def play_baseline():
     baseline = GemmaBaseline(config)
     benchmark = Benchmark(config, baseline, client)
     
-    benchmark.run(times_per_competition=1, filename="luca_gemma_baseline_benchmark_results.xlsx")
+    benchmark.run(times_per_competition=5, filename="luca_gemma_baseline_benchmark_results.xlsx")
 
 if __name__ == "__main__":
     play_baseline()

@@ -73,18 +73,20 @@ class BertRAGBaseline(Guesser):
     def _score_option(self, wiki: wikipediaapi.Wikipedia, opt_text: str, question_emb: torch.Tensor, context_query: str, exclude_title: str) -> float:
         """Calculates the best similarity score for an option using Wikipedia sections from top articles."""
         try:
+            TOP_N_PAGES = 1
+            TOP_N_SECTIONS = 4
             query = f"{opt_text} - {context_query}"
             results = wiki.search(query)
             
             if not results.pages:
                 return self._get_direct_similarity(opt_text, question_emb)
 
-            # Evaluate up to top 3 articles, excluding the article found for the question
+            # Evaluate up to top n articles, excluding the article found for the question
             top_titles = []
             for title in results.pages.keys():
                 if title != exclude_title:
                     top_titles.append(title)
-                if len(top_titles) == 3:
+                if len(top_titles) == TOP_N_PAGES:
                     break
             
             all_sections_text = []
@@ -93,7 +95,10 @@ class BertRAGBaseline(Guesser):
                 sections = self._get_page_sections(page)
                 # Append the option text to the end of each section to provide more context for the similarity score
                 sections_with_opt = [f"{s}\n\n{opt_text}" for s in sections]
-                all_sections_text.extend(sections_with_opt)
+                for section in sections_with_opt:
+                    all_sections_text.append(section)
+                    if len(all_sections_text) == TOP_N_SECTIONS:
+                        break
                 
             if not all_sections_text:
                 return self._get_direct_similarity(opt_text, question_emb)
@@ -129,7 +134,7 @@ def play_rag_baseline():
     API_URL = "http://131.175.15.22:51111/"
     USERNAME = os.getenv("POLI_USERNAME", "")
     PASSWORD = os.getenv("POLI_PASSWORD", "")
-    ATTEMPTS_PER_COMPETITION = 5
+    ATTEMPTS_PER_COMPETITION = 2
     
     client = MillionaireClient(API_URL)
     try:
@@ -144,7 +149,8 @@ def play_rag_baseline():
         approach=ApproachType.RAG,
         #embedding_model="nomic-ai/modernbert-embed-base", # big + slow
         #embedding_model="all-MiniLM-L6-v2", # small + fast
-        embedding_model="BAAI/bge-small-en-v1.5", # medium
+        # embedding_model="BAAI/bge-small-en-v1.5", # medium small
+        embedding_model="nomic-ai/nomic-embed-text-v1.5", # medium large
         #embedding_model_size=0,
         is_rag=True
     )

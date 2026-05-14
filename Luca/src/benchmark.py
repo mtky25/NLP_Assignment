@@ -28,6 +28,9 @@ class Benchmark:
                     results = game.get_game_results()
                     all_results.extend(results)
                     
+                    # Save correct questions to a dataset file
+                    self.save_questions_to_excel(results)
+                    
                 except Exception as e: 
                     print(f"Error on game {game_num + 1} of competition {comp_id}: {e}")
 
@@ -37,6 +40,28 @@ class Benchmark:
         
         if save:
             self.save_to_excel(filename)
+
+    def save_questions_to_excel(self, results: List[QuestionResult], filename: str = "collected_questions.xlsx"):
+        # Filter for correct answers only
+        correct_results = [res for res in results if res.question_outcome.name == "CORRECT"]
+        if not correct_results:
+            return
+
+        df_new = pd.DataFrame([dataclasses.asdict(res) for res in correct_results])
+        
+        try:
+            if os.path.exists(filename):
+                df_existing = pd.read_excel(filename)
+                df_final = pd.concat([df_existing, df_new], ignore_index=True)
+                # Drop duplicates based on question text to avoid redundancy
+                df_final = df_final.drop_duplicates(subset=['question_text'])
+            else:
+                df_final = df_new
+
+            df_final.to_excel(filename, index=False)
+            print(f"Saved {len(correct_results)} correct questions to {filename}")
+        except Exception as e:
+            print(f"Error saving questions to excel: {e}")
 
     def save_to_excel(self, filename: str = "benchmark_results.xlsx"):
         directory = os.path.dirname(filename)

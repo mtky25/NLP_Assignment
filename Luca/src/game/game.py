@@ -56,10 +56,17 @@ class Game:
             # Submit answer
             result = self.game.answer(answer_id)
 
+            # Get option texts for logging
+            options_text = "; ".join([f"[{opt.id}] {opt.text}" for opt in question.options])
+            chosen_option_text = next((opt.text for opt in question.options if opt.id == answer_id), "Unknown")
+
             if result.correct:
                 print(" CORRECT!")
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
+                    question_text=question.text,
+                    options=options_text,
+                    correct_answer=chosen_option_text,
                     question_outcome=QuestionOutcome.CORRECT,
                     answer_time=duration,
                     search_time=search_time,
@@ -69,6 +76,8 @@ class Game:
             elif result.timed_out:
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
+                    question_text=question.text,
+                    options=options_text,
                     question_outcome=QuestionOutcome.TIMEOUT,
                     answer_time=duration,
                     search_time=search_time,
@@ -78,6 +87,8 @@ class Game:
             else:
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
+                    question_text=question.text,
+                    options=options_text,
                     question_outcome=QuestionOutcome.INCORRECT,
                     answer_time=duration,
                     search_time=search_time,
