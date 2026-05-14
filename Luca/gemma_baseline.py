@@ -131,15 +131,14 @@ def play_baseline():
         notes="Gemma baseline using standardized benchmark logic",
         approach=ApproachType.DIRECT_LLM,
         inference_model="google/gemma-4-e2b-it",
-        inference_model_size=4,
+        inference_model_size=2,
         is_rag=False
     )
     
     baseline = GemmaBaseline(config)
     benchmark = Benchmark(config, baseline, client)
     
-    # Run 1 game per competition for a quick check
-    benchmark.run(times_per_competition=1, filename="luca_benchmark_results.xlsx")
+    benchmark.run(times_per_competition=1, filename="luca_gemma_baseline_benchmark_results.xlsx")
 
 if __name__ == "__main__":
     play_baseline()
