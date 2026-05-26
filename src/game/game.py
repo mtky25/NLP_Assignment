@@ -12,14 +12,21 @@ class Game:
         self.results = []
 
     def play_game(self):
-        self.game = self.client.game.start(competition_id=self.competition_id)
-        print(f"Started game in competition: {self.game.state.competition.name}")
+        mode = getattr(self.guesser, "mode", "text")
+        self.game = self.client.game.start(competition_id=self.competition_id, mode=mode)
+        print(f"Started game in competition: {self.game.state.competition.name} (Mode: {mode})")
+        
         while self.game.in_progress:
             question = self.game.current_question
             if not question:
                 break
             
             print(f"\n--- Level {self.game.current_level} ---")
+            
+            # In speech mode, we need to fetch and transcribe audio to get the text
+            if mode == "speech":
+                question = self.guesser.get_speech_question(self.game)
+            
             print(f"Q: {question.text}")
             # Print options for the user to see
             for i, opt in enumerate(question.options):
