@@ -13,6 +13,12 @@ class Game:
 
     def play_game(self):
         mode = getattr(self.guesser, "mode", "text")
+        
+        # Preload models (like Whisper) before the quiz starts to save time
+        if hasattr(self.guesser, "preload"):
+            print("Preloading models...")
+            self.guesser.preload()
+
         self.game = self.client.game.start(competition_id=self.competition_id, mode=mode)
         print(f"Started game in competition: {self.game.state.competition.name} (Mode: {mode})")
         
@@ -24,8 +30,10 @@ class Game:
             print(f"\n--- Level {self.game.current_level} ---")
             
             # In speech mode, we need to fetch and transcribe audio to get the text
+            transcription_time = 0.0
             if mode == "speech":
                 question = self.guesser.get_speech_question(self.game)
+                transcription_time = getattr(self.guesser, 'transcription_time', 0.0)
             
             print(f"Q: {question.text}")
             # Print options for the user to see
@@ -44,18 +52,19 @@ class Game:
                 search_time = getattr(self.guesser, 'search_time', 0.0)
                 reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
                 
-                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
+                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s, Transcription: {transcription_time:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
             except Exception as e:
                 duration = time.time() - start_t
                 search_time = getattr(self.guesser, 'search_time', 0.0)
                 reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
-                print(f"Inference error: {e} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
+                print(f"Inference error: {e} (Time: {duration:.2f}s, Transcription: {transcription_time:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
                 self.results.append(QuestionResult(
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.ERROR,
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 ))
                 break
@@ -71,6 +80,7 @@ class Game:
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             elif result.timed_out:
@@ -80,6 +90,7 @@ class Game:
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             else:
@@ -89,6 +100,7 @@ class Game:
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             self.results.append(question_result)

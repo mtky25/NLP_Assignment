@@ -42,26 +42,31 @@ class ExperimentConfig:
     mean_time: float = 0.0
     mean_search_time: float = 0.0
     mean_reasoning_time: float = 0.0
+    mean_transcription_time: float = 0.0
 
     entertainment_mean_time: float = 0.0
     entertainment_mean_question_accuracy: float = 0.0
     entertainment_mean_search_time: float = 0.0
     entertainment_mean_reasoning_time: float = 0.0
+    entertainment_mean_transcription_time: float = 0.0
 
     science_nature_mean_time: float = 0.0
     science_nature_mean_question_accuracy: float = 0.0
     science_nature_mean_search_time: float = 0.0
     science_nature_mean_reasoning_time: float = 0.0
+    science_nature_mean_transcription_time: float = 0.0
 
     ancient_history_mean_time: float = 0.0
     ancient_history_mean_question_accuracy: float = 0.0
     ancient_history_mean_search_time: float = 0.0
     ancient_history_mean_reasoning_time: float = 0.0
+    ancient_history_mean_transcription_time: float = 0.0
 
     maths_mean_time: float = 0.0
     maths_mean_question_accuracy: float = 0.0
     maths_mean_search_time: float = 0.0
     maths_mean_reasoning_time: float = 0.0
+    maths_mean_transcription_time: float = 0.0
 
 @dataclass
 class QuestionResult:
@@ -70,11 +75,5 @@ class QuestionResult:
     answer_time: float = 0.0
     search_time: float = 0.0
     reasoning_time: float = 0.0
+    transcription_time: float = 0.0
     level: int = 0
-
-    
-
-
-    
-
-    

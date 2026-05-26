@@ -12,14 +12,29 @@ class Game:
         self.results = []
 
     def play_game(self):
-        self.game = self.client.game.start(competition_id=self.competition_id)
-        print(f"Started game in competition: {self.game.state.competition.name}")
+        mode = getattr(self.guesser, "mode", "text")
+        
+        # Preload models (like Whisper) before the quiz starts to save time
+        if hasattr(self.guesser, "preload"):
+            print("Preloading models...")
+            self.guesser.preload()
+
+        self.game = self.client.game.start(competition_id=self.competition_id, mode=mode)
+        print(f"Started game in competition: {self.game.state.competition.name} (Mode: {mode})")
+        
         while self.game.in_progress:
             question = self.game.current_question
             if not question:
                 break
             
             print(f"\n--- Level {self.game.current_level} ---")
+            
+            # In speech mode, we need to fetch and transcribe audio to get the text
+            transcription_time = 0.0
+            if mode == "speech":
+                question = self.guesser.get_speech_question(self.game)
+                transcription_time = getattr(self.guesser, 'transcription_time', 0.0)
+            
             print(f"Q: {question.text}")
             # Print options for the user to see
             for i, opt in enumerate(question.options):
@@ -37,18 +52,19 @@ class Game:
                 search_time = getattr(self.guesser, 'search_time', 0.0)
                 reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
                 
-                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
+                print(f"Guesser chose option: {answer_id} (Time: {duration:.2f}s, Transcription: {transcription_time:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
             except Exception as e:
                 duration = time.time() - start_t
                 search_time = getattr(self.guesser, 'search_time', 0.0)
                 reasoning_time = getattr(self.guesser, 'reasoning_time', 0.0)
-                print(f"Inference error: {e} (Time: {duration:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
+                print(f"Inference error: {e} (Time: {duration:.2f}s, Transcription: {transcription_time:.2f}s, Search: {search_time:.2f}s, Reasoning: {reasoning_time:.2f}s)")
                 self.results.append(QuestionResult(
                     theme=self.game.state.competition.name,
                     question_outcome=QuestionOutcome.ERROR,
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 ))
                 break
@@ -56,43 +72,35 @@ class Game:
             # Submit answer
             result = self.game.answer(answer_id)
 
-            # Get option texts for logging
-            options_text = "; ".join([f"[{opt.id}] {opt.text}" for opt in question.options])
-            chosen_option_text = next((opt.text for opt in question.options if opt.id == answer_id), "Unknown")
-
             if result.correct:
                 print(" CORRECT!")
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
-                    question_text=question.text,
-                    options=options_text,
-                    correct_answer=chosen_option_text,
                     question_outcome=QuestionOutcome.CORRECT,
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             elif result.timed_out:
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
-                    question_text=question.text,
-                    options=options_text,
                     question_outcome=QuestionOutcome.TIMEOUT,
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             else:
                 question_result = QuestionResult(
                     theme=self.game.state.competition.name,
-                    question_text=question.text,
-                    options=options_text,
                     question_outcome=QuestionOutcome.INCORRECT,
                     answer_time=duration,
                     search_time=search_time,
                     reasoning_time=reasoning_time,
+                    transcription_time=transcription_time,
                     level=self.game.state.current_level,
                 )
             self.results.append(question_result)
