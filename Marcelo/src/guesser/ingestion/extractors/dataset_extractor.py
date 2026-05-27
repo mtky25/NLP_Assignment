@@ -5,15 +5,18 @@ from llama_index.core.schema import Document
 from src.guesser.ingestion.extractors.extractor import BaseExtractor
 
 class DatasetExtractor(BaseExtractor):
-    def __init__(self,dataset_configs:dict):
+    def __init__(self, dataset_configs: dict, hf_token: str = None):
         self.configs = dataset_configs
+        self.hf_token = hf_token
 
     
     def extract(self, limit=None, starting_id=0, random_seed=None):
         dataset = load_dataset(
             self.configs["hf_dataset"],
             self.configs.get("hf_subset"),
-            split=self.configs["split"])
+            split=self.configs["split"],
+            token=self.hf_token
+        )
         
         total_items = len(dataset)
         

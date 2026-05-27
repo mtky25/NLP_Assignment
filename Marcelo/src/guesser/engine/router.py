@@ -1,40 +1,38 @@
-from src.models import ApproachType
-from src.guesser.context_db.collections import (
-    COLLECTION_ENTERTAINMENT,
-    COLLECTION_HISTORY,
-    COLLECTION_MATH,
-    COLLECTION_SCIENCE,
-    COLLECTION_DEFAULT 
+from src.models import ThemeConfig
+from src.guesser.engine.configs import (
+    MATHS_CONFIG,
+    HISTORY_POLITICS_CONFIG,
+    SCIENCE_NATURE_CONFIG,
+    ENTERTAINMENT_CONFIG,
+    NEWS_CONFIG,
+    PHILOSOPHY_PSYCHOLOGY_CONFIG,
+    DEFAULT_CONFIG
 )
-from src.guesser.engine.prompts import (
-    MCQ_PROMPT_ENTERTAINMENT,
-    MCQ_PROMPT_HISTORY_POLITICS,
-    MCQ_PROMPT_MATHS,
-    MCQ_PROMPT_SCIENCE_NATURE,
-    MCQ_PROMPT
-)
-
-
 
 class Router:
     def __init__(self, theme: str):
         self.theme = theme.lower().strip()
 
-    def route(self):
+    def route(self) -> ThemeConfig:
         """
-        Return a tuple (collection_name, prompt, approach) based on the theme.
+        Return a ThemeConfig based on keyword matching in the theme string.
         """
-        # Normalize theme: replace underscores with spaces and strip
-        normalized_theme = self.theme.replace("_", " ")
-        mapping = {
-            "entertainment": (COLLECTION_ENTERTAINMENT, MCQ_PROMPT_ENTERTAINMENT, ApproachType.RAG),
-            "history politics": (COLLECTION_HISTORY, MCQ_PROMPT_HISTORY_POLITICS, ApproachType.RAG),
-            "ancient history and politics": (COLLECTION_HISTORY, MCQ_PROMPT_HISTORY_POLITICS, ApproachType.RAG),
-            "history and politics": (COLLECTION_HISTORY, MCQ_PROMPT_HISTORY_POLITICS, ApproachType.RAG),
-            "maths": (COLLECTION_MATH, MCQ_PROMPT_MATHS, ApproachType.HYBRID),
-            "math": (COLLECTION_MATH, MCQ_PROMPT_MATHS, ApproachType.HYBRID),
-            "science and nature": (COLLECTION_SCIENCE, MCQ_PROMPT_SCIENCE_NATURE, ApproachType.RAG),
-            "science nature": (COLLECTION_SCIENCE, MCQ_PROMPT_SCIENCE_NATURE, ApproachType.RAG),
-        }
+        if "math" in self.theme:
+            return MATHS_CONFIG
 
-        return mapping.get(normalized_theme, (COLLECTION_DEFAULT, MCQ_PROMPT, ApproachType.RAG))
+        if "history" in self.theme or "politics" in self.theme:
+            return HISTORY_POLITICS_CONFIG
+
+        if "science" in self.theme or "nature" in self.theme:
+            return SCIENCE_NATURE_CONFIG
+
+        if "entertainment" in self.theme:
+            return ENTERTAINMENT_CONFIG
+
+        if "news" in self.theme:
+            return NEWS_CONFIG
+
+        if "philosophy" in self.theme or "psychology" in self.theme:
+            return PHILOSOPHY_PSYCHOLOGY_CONFIG
+
+        return DEFAULT_CONFIG

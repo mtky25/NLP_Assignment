@@ -1,6 +1,5 @@
 from llama_index.core import PromptTemplate
 
-# A general prompt template that can be used as a base or default
 GENERAL_MCQ_PROMPT_STR = (
     "You are an expert assistant. Use the following context to answer the question.\n"
     "--- CONTEXT ---\n"
@@ -9,7 +8,8 @@ GENERAL_MCQ_PROMPT_STR = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "CRITICAL: Find the correct option index (0, 1, 2, or 3).\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
     "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
     "Final Option Index: "
 )
@@ -17,24 +17,89 @@ GENERAL_MCQ_PROMPT_STR = (
 MCQ_PROMPT = PromptTemplate(GENERAL_MCQ_PROMPT_STR)
 
 QA_PROMPT_TMPL_STR_MATHS = (
-    "You are an elite mathematician solving a multiple-choice quiz.\n"
-    "--- CONTEXT (Similar Problem & Method) ---\n"
+    "<|im_start|>system\n"
+    "You are an elite mathematician optimized for fast, high-density MCQA solving.\n"
+    "Solve the user's multiple-choice question using a strict, ultra-concise step-by-step approach.\n\n"
+    "CRITICAL FOR SPEED:\n"
+    "1. Keep the <scratchpad> reasoning extremely dense and direct. No filler words, no repeating the question.\n"
+    "2. Write only the core mathematical steps and equations. Be brief to avoid latency timeouts.\n"
+    "3. Map your final result to the correct option index (0, 1, 2, or 3).\n\n"
+    "OUTPUT FORMAT:\n"
+    "Your output MUST follow this exact structure:\n"
+    "<scratchpad>\n"
+    "[Short, line-by-line calculations]\n"
+    "</scratchpad>\n"
+    "FINAL_INDEX: [0, 1, 2, or 3]<|im_end|>\n"
+    "<|im_start|>user\n"
+    "--- CONTEXT ---\n"
     "{context}\n"
     "----------------\n"
     "QUESTION:\n{question}\n\n"
-    "OPTIONS:\n{options}\n\n"
-    "INSTRUCTIONS:\n"
-    "1. Analyze the method used in the CONTEXT.\n"
-    "2. Use the <scratchpad> space to think step-by-step and perform calculations. You MUST write your calculations out.\n"
-    "3. After finishing your calculations, match your final result with one of the options (0, 1, 2, or 3).\n\n"
-    "OUTPUT FORMAT:\n"
-    "Your output must be EXACTLY in this format, with no extra text after the final index:\n"
-    "<scratchpad>\n"
-    "[Your step-by-step logic here]\n"
-    "</scratchpad>\n"
-    "FINAL_INDEX: [0, 1, 2, or 3]"
+    "OPTIONS:\n"
+    "{options}\n<|im_end|>\n"
+    "<|im_start|>assistant\n"
 )
 MCQ_PROMPT_MATHS = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS)
+
+QA_PROMPT_TMPL_STR_MATHS_POT = (
+    "Solve this math problem using Python. Output ONLY one ```python code block.\n\n"
+    "{context}"
+    "QUESTION: {question}\n\n"
+    "OPTIONS: {options}\n\n"
+    "Environment (already available):\n"
+    "- `from sympy import *` (symbols, solve, integrate, diff, Matrix, etc.)\n"
+    "- `import math, statistics`\n"
+    "- `PYTHON_OPTIONS = {options_list}` (list of option strings)\n\n"
+    "Rules:\n"
+    "- Compute the answer numerically or symbolically.\n"
+    "- Last line MUST be `print(index)` where index is 0, 1, 2, or 3.\n\n"
+    "Example:\n"
+    "```python\n"
+    "from sympy import *\n"
+    "x = symbols('x')\n"
+    "result = solve(x**2 - 4, x)\n"
+    "ans = float(max(result))\n"
+    "print(PYTHON_OPTIONS.index(str(int(ans))) if str(int(ans)) in PYTHON_OPTIONS else 0)\n"
+    "```\n\n"
+    "Your solution:\n"
+)
+MCQ_PROMPT_MATHS_POT = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS_POT)
+
+QA_PROMPT_TMPL_STR_MATHS_THEORY = (
+    "You are an expert in mathematical theory, history, and concepts. Answer the multiple choice question.\n\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_MATHS_THEORY = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS_THEORY)
+
+MATH_CLASSIFIER_PROMPT_STR = (
+    "Classify the math question as ONE word: \"calculation\" or \"theory\".\n"
+    "- \"calculation\" = requires computing/finding a numeric answer, including word problems with numbers, measurements, fractions, counting, geometry with values, etc.\n"
+    "- \"theory\" = asks about names, history, definitions, descriptions of theorems/concepts WITHOUT any computation required.\n"
+    "- When in doubt, answer \"calculation\".\n\n"
+    "Examples:\n"
+    "Q: What is the integral of x^2 from 0 to 2?\n"
+    "A: calculation\n\n"
+    "Q: An 8.5-by-11-inch paper is folded in half. What is the length of the longest side after the fold?\n"
+    "A: calculation\n\n"
+    "Q: In a group of 11 people, find the sum of all possible values of T such that the constraints hold.\n"
+    "A: calculation\n\n"
+    "Q: A triangle has sides 3, 4, 5. What is its area?\n"
+    "A: calculation\n\n"
+    "Q: How many distinct ways can 5 books be arranged on a shelf?\n"
+    "A: calculation\n\n"
+    "Q: Who proved Fermat's Last Theorem?\n"
+    "A: theory\n\n"
+    "Q: What is the definition of a vector space?\n"
+    "A: theory\n\n"
+    "Q: Which of the following best describes the Pythagorean theorem?\n"
+    "A: theory\n\n"
+    "Q: {question}\n"
+    "A:"
+)
 
 #---------
 
@@ -45,8 +110,10 @@ QA_PROMPT_TMPL_STR_ENTERTAINMENT = (
     "----------------\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
-    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
-    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_ENTERTAINMENT = PromptTemplate(QA_PROMPT_TMPL_STR_ENTERTAINMENT)
@@ -60,8 +127,10 @@ QA_PROMPT_TMPL_STR_SCIENCE_NATURE = (
     "----------------\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
-    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
-    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_SCIENCE_NATURE = PromptTemplate(QA_PROMPT_TMPL_STR_SCIENCE_NATURE)
@@ -75,8 +144,69 @@ QA_PROMPT_TMPL_STR_HISTORY_POLITICS = (
     "----------------\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
-    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n\n"
-    "If there's NO INFORMATION n about the question in the CONTEXT, you should REASON with your own knowledge to answer.\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_HISTORY_POLITICS = PromptTemplate(QA_PROMPT_TMPL_STR_HISTORY_POLITICS)
+
+#---------
+
+QA_PROMPT_TMPL_STR_NEWS = (
+    "You are an expert in current events and news. Use the context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_NEWS = PromptTemplate(QA_PROMPT_TMPL_STR_NEWS)
+
+#---------
+
+QA_PROMPT_TMPL_STR_PHILOSOPHY_PSYCHOLOGY = (
+    "You are an expert in philosophy and psychology. Use the context to answer the question.\n"
+    "--- CONTEXT ---\n"
+    "{context}\n"
+    "----------------\n"
+    "QUESTION:\n{question}\n\n"
+    "OPTIONS:\n{options}\n\n"
+    "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
+    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
+    "If there's NO INFORMATION about the question in the CONTEXT, use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "Final Option Index: "
+)
+MCQ_PROMPT_PHILOSOPHY_PSYCHOLOGY = PromptTemplate(QA_PROMPT_TMPL_STR_PHILOSOPHY_PSYCHOLOGY)
+
+#---------
+
+QUERY_TRANSLATOR_PROMPT_STR = (
+    "Your task is to extract 1-3 UNIQUE search keywords from the question below.\n"
+    "INSTRUCTIONS:\n"
+    "1. Prioritize Proper Nouns (Names of people, places, specific events, or titles).\n"
+    "2. If no proper nouns exist, extract the core subject nouns.\n"
+    "3. NEVER repeat a keyword. Each keyword must appear at most ONCE.\n"
+    "4. Maximum of 3 keywords total.\n"
+    "5. Output ONLY the keywords separated by spaces. No explanations, no filler.\n\n"
+    "EXAMPLES:\n"
+    "Question: Who is the author of 'The Great Gatsby'?\n"
+    "Keywords: Great Gatsby\n"
+    "Question: What is the chemical symbol for Gold?\n"
+    "Keywords: Gold\n"
+    "Question: How many planets are in our solar system?\n"
+    "Keywords: solar system\n"
+    "Question: When did the French Revolution start?\n"
+    "Keywords: French Revolution\n"
+    "Question: What material is used in the balls of a Newton's cradle?\n"
+    "Keywords: Newton cradle material\n\n"
+    "QUESTION: {question}\n"
+    "Keywords:"
+)
