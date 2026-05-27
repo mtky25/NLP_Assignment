@@ -1,4 +1,5 @@
 from src.guesser.guesser import Guesser
+from typing import Any, Dict
 from src.guesser.ingestion.loader import Loader
 from src.guesser.engine.guesser_engine import GuesserEngine
 from src.guesser.configs import INFERENCE_MODEL, EMBEDDING_MODEL
@@ -34,7 +35,7 @@ class MarceloGuesser(Guesser):
         """
         return self.engine.chat(text)
 
-    def infer_answer(self, question: Question, theme: str = None) -> int:
+    def infer_answer(self, question: Question, theme: str = None, game_session: Any = None) -> int:
         self.search_time = 0.0
         self.reasoning_time = 0.0
         

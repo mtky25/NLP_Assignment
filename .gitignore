@@ -209,3 +209,4 @@ __marimo__/
 Marcelo/src/guesser/data/**
 Marcelo/src/guesser/context_db/chroma.sqlite3
 #Marcelo/src/guesser/context_db/*/
+Luca/.env
