@@ -1,6 +1,6 @@
 from llama_index.core.node_parser import SentenceSplitter
 from llama_index.core import Document
-from src.guesser.configs import CHUNK_SIZE, CHUNK_OVERLAP
+from src.guesser.ingestion.configs import CHUNK_SIZE, CHUNK_OVERLAP
 import asyncio
 
 class Chunker:

@@ -62,7 +62,7 @@ Use the `DatasetIngestionPipeline` in `src/guesser/ingestion/pipelines/dataset_i
 
 You can also use `dataset_mass_ingest.py` to ingest multiple datasets at once:
 ```bash
-python Marcelo/dataset_mass_ingest.py
+python Marcelo/scripts/dataset_mass_ingest.py
 ```
 
 ## 📜 Development Contracts

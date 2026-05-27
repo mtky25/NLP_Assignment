@@ -14,7 +14,7 @@ class Benchmark:
         self.experiment = experiment
         self.guesser = guesser
         self.client = client
-        self.competitions = [0,1,2,3] 
+        self.competitions = [0, 1, 2, 3, 4, 5]
 
     def run(self, times_per_competition: int = 5, save: bool = True, filename: str = "benchmark_results.xlsx"):
         all_results = []

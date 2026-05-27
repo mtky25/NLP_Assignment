@@ -5,8 +5,8 @@ from src.guesser.ingestion.chunking import Chunker
 from src.guesser.ingestion.loader import Loader
 
 class DatasetIngestionPipeline:
-    def __init__(self,dataset_config,embedding_model,db_path,colletion_name):
-        self.extractor = DatasetExtractor(dataset_config)
+    def __init__(self, dataset_config, embedding_model, db_path, colletion_name, hf_token=None):
+        self.extractor = DatasetExtractor(dataset_config, hf_token=hf_token)
         self.loader = Loader(
                             db_path=db_path,
                             embedding_model_name=embedding_model,
