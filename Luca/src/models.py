@@ -10,6 +10,8 @@ class ApproachType(str, Enum):
     DIRECT_LLM = "direct_llm"
     RAG = "rag"
     HYBRID = "hybrid"
+    POT = "pot"
+    SEARCH = "search"
 
 
 class CompetitionTheme(str, Enum):
@@ -17,6 +19,8 @@ class CompetitionTheme(str, Enum):
     ANCIENT_HISTORY_POLITICS = "Ancient History & Politics"
     SCIENCE_AND_NATURE = "Science & Nature"
     MATHS = "Maths"
+    NEWS = "News"
+    PHILOSOPHY_PSYCHOLOGY = "Philosophy and Psychology"
 
 
 class QuestionOutcome(str, Enum):
@@ -32,7 +36,8 @@ class ExperimentConfig:
     notes: str = ""
     approach: Optional[ApproachType] = None
     inference_model: str = ""
-    inference_model_size: int = 0
+    inference_model_size: str = ""
+    debug: bool = False
 
     is_rag: bool = False
     embedding_model: Optional[str] = None
@@ -68,6 +73,16 @@ class ExperimentConfig:
     maths_mean_reasoning_time: float = 0.0
     maths_mean_transcription_time: float = 0.0
 
+    news_mean_time: float = 0.0
+    news_mean_question_accuracy: float = 0.0
+    news_mean_search_time: float = 0.0
+    news_mean_reasoning_time: float = 0.0
+
+    philosophy_psychology_mean_time: float = 0.0
+    philosophy_psychology_mean_question_accuracy: float = 0.0
+    philosophy_psychology_mean_search_time: float = 0.0
+    philosophy_psychology_mean_reasoning_time: float = 0.0
+
 @dataclass
 class QuestionResult:
     theme: str = ""
@@ -77,3 +92,20 @@ class QuestionResult:
     reasoning_time: float = 0.0
     transcription_time: float = 0.0
     level: int = 0
+
+@dataclass
+class ThemeConfig:
+    collection_name: str
+    prompt_template: any # PromptTemplate
+    approach_type: ApproachType
+    model_name: str
+    fallback_model: Optional[str] = None
+    num_predict: int = 128
+    temperature: float = 0.0
+    top_k: int = 2
+    similarity_threshold: float = 0.6
+    translator_model: Optional[str] = None
+    two_vector_search: bool = False
+    is_rag: bool = True
+    timeout: float = 120.0
+    max_search_results: int = 5
