@@ -1,7 +1,7 @@
 import time
 import subprocess
 from concurrent.futures import ThreadPoolExecutor
-from src.guesser.engine.llmprovider import get_llm, unload_model
+from src.guesser.engine.llmprovider import get_llm
 from src.guesser.engine.router import Router
 from src.guesser.engine.query_translator import QueryTranslator
 from src.millionaire_client.models import Question
@@ -15,7 +15,10 @@ from src.guesser.engine.configs import TRANSLATOR_MODEL, FALLBACK_INFERENCE_MODE
 
 class GuesserEngine:
 
-    def __init__(self, llm_model="llama3.2", db_path:str="", embedding_model:str="", top_k=2, temperature=0.0, theme:str="", debug:bool=False, pre_load_models:list=None):
+    def __init__(self, llm_model="llama3.2", db_path:str="", embedding_model:str="", top_k=2, temperature=0.0, theme:str="", debug:bool=False, pre_load_models:list=None,
+                 fallback_model_override: str = None,
+                 math_model_override: str = None,
+                 translator_model_override: str = None):
         self.llm_model = llm_model
         self.db_path = db_path
         self.embedding_model = embedding_model
@@ -25,11 +28,18 @@ class GuesserEngine:
         self.debug = debug
         self.current_fallback_model = None
 
+        # Model overrides — set per-experiment by the model runner
+        self.fallback_model_override = fallback_model_override
+        self.math_model_override = math_model_override
+
+        # Translator/Classifier: use override if provided, else fall back to global default
+        _translator_name = translator_model_override or TRANSLATOR_MODEL
+
         # Initialize Query Translator
-        self.translator = QueryTranslator(debug=self.debug)
+        self.translator = QueryTranslator(model_name=_translator_name, debug=self.debug)
 
         # Initialize Math Classifier (reuses translator-sized model, already warm in VRAM)
-        self.math_classifier = MathClassifier(model_name=TRANSLATOR_MODEL, debug=self.debug)
+        self.math_classifier = MathClassifier(model_name=_translator_name, debug=self.debug)
 
         # Theme Cache stores: (retriever, prompt_template, approach_type, llm, current_theme_config, translator, is_rag, fallback_model)
         self.theme_cache = {} 
@@ -75,13 +85,11 @@ class GuesserEngine:
 
             cpu_models = []
             gpu_models = []
-            
-            for line in lines[1:]: # Skip header
+
+            for line in lines[1:]:
                 parts = line.split()
                 if not parts: continue
-                
-                # Processor info is usually the 4th column in 'ollama ps'
-                # But it can vary. We'll look for "CPU" or "GPU" in the string.
+
                 model_name = parts[0]
                 if "CPU" in line:
                     cpu_models.append(model_name)
@@ -124,10 +132,16 @@ class GuesserEngine:
         prompt_template = theme_config.prompt_template
         approach_type = theme_config.approach_type
         is_rag = theme_config.is_rag
-        fallback_model = theme_config.fallback_model
-        
-        # Override theme model with instance model if provided
-        model_name = self.llm_model if self.llm_model else theme_config.model_name
+
+        # Fallback: use experiment-level override if provided, else theme default
+        fallback_model = self.fallback_model_override or theme_config.fallback_model
+
+        # Model: math themes use math_model_override; all others use llm_model override
+        _is_math_theme = "math" in theme.lower()
+        if _is_math_theme and self.math_model_override:
+            model_name = self.math_model_override
+        else:
+            model_name = self.llm_model if self.llm_model else theme_config.model_name
 
         # Determine stop sequences based on approach
         # POT needs multi-line, others benefit from early stopping
@@ -207,7 +221,7 @@ class GuesserEngine:
             options_list.append(f"[{index}] {option.text}")
             raw_options.append(option.text)
         
-        options_text = " ".join(options_list)
+        options_text = "\n".join(options_list)
         question_and_options = f"Question: {only_question} Options: {options_text}"
         
         return only_question, question_and_options, options_text, raw_options
@@ -260,7 +274,7 @@ class GuesserEngine:
             if category == "theory":
                 self.approach_type = ApproachType.RAG
                 self.prompt_template = MCQ_PROMPT_MATHS_THEORY
-                self.llm_model = FALLBACK_INFERENCE_MODEL
+                self.llm_model = self.fallback_model_override or FALLBACK_INFERENCE_MODEL
                 if self.debug:
                     print(f"[DEBUG] Math override applied:")
                     print(f"[DEBUG]   approach: POT -> RAG (no retrieval, prompt-only)")
@@ -382,8 +396,6 @@ class GuesserEngine:
             # 2. Check if we need to swap
             current_loaded_model = getattr(self.llm, 'model', None)
             if current_loaded_model != active_model_name:
-                # We no longer force unload to keep both in VRAM as requested
-
                 # Load/Switch to the active model
                 stop_seq = None if self.approach_type == ApproachType.POT else ["\n", "\n\n"]
                 self.llm = get_llm(

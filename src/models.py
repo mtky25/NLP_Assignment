@@ -38,6 +38,8 @@ class ExperimentConfig:
     inference_model: str = ""
     inference_model_size: str = ""
     debug: bool = False
+    mode: str = "text"
+    transcription_model: str = "tiny"
 
     is_rag: bool = False
     embedding_model: Optional[str] = None
@@ -101,7 +103,7 @@ class ThemeConfig:
     model_name: str
     fallback_model: Optional[str] = None
     num_predict: int = 128
-    temperature: float = 0.0
+    temperature: float = 0.1
     top_k: int = 2
     similarity_threshold: float = 0.6
     translator_model: Optional[str] = None
