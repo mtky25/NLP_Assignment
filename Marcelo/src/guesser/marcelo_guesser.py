@@ -2,7 +2,7 @@ from src.guesser.guesser import Guesser
 from typing import Any, Dict
 from src.guesser.ingestion.loader import Loader
 from src.guesser.engine.guesser_engine import GuesserEngine
-from src.guesser.engine.configs import INFERENCE_MODEL, EMBEDDING_MODEL, PRE_LOAD_MODELS
+from src.guesser.engine.configs import INFERENCE_MODEL, EMBEDDING_MODEL, PRE_LOAD_MODELS, FALLBACK_INFERENCE_MODEL, MATH_INFERENCE_MODEL, TRANSLATOR_MODEL
 from src.models import ExperimentConfig, ApproachType
 from src.millionaire_client.models import Question
 import re
@@ -11,21 +11,41 @@ import random
 
 
 class MarceloGuesser(Guesser):
-    def __init__(self, config: ExperimentConfig, 
+    def __init__(self, config: ExperimentConfig,
                  db_path=None,
                  embedding_model_name=EMBEDDING_MODEL,
                  inference_model_name=None,
-                 theme: str = "Science and Nature"):        
-        super().__init__(config)
+                 fallback_model_name: str = None,
+                 math_model_name: str = None,
+                 translator_model_name: str = None,
+                 theme: str = "Science and Nature"):
+        super().__init__(
+            config,
+            mode=getattr(config, 'mode', 'text'),
+            transcription_model=getattr(config, 'transcription_model', 'tiny'),
+        )
 
         # Priority: explicit arg > config > global default
         if inference_model_name is None:
             inference_model_name = getattr(self.config, 'inference_model', INFERENCE_MODEL)
 
+        _fallback  = fallback_model_name  or FALLBACK_INFERENCE_MODEL
+        _math      = math_model_name      or MATH_INFERENCE_MODEL
+        _translator = translator_model_name or TRANSLATOR_MODEL
+
         if db_path is None:
             # Default to the context_db folder relative to this file
             base_dir = os.path.dirname(os.path.abspath(__file__))
             db_path = os.path.join(base_dir, "context_db")
+
+        # Build the pre-load list from the actual models this experiment will use
+        # (deduplicated so no model is warmed up twice)
+        _pre_load = list(dict.fromkeys([
+            _translator,
+            inference_model_name,
+            _fallback,
+            _math,
+        ]))
 
         self.engine = GuesserEngine(
             inference_model_name,
@@ -34,7 +54,10 @@ class MarceloGuesser(Guesser):
             temperature=0.0,
             theme=theme,
             debug=self.config.debug,
-            pre_load_models=PRE_LOAD_MODELS
+            pre_load_models=_pre_load,
+            fallback_model_override=_fallback,
+            math_model_override=_math,
+            translator_model_override=_translator,
         )
         
 

@@ -7,43 +7,21 @@ GENERAL_MCQ_PROMPT_STR = (
     "----------------\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
-    "CRITICAL: Find the correct option index (0, 1, 2, or 3).\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
-    "Output ONLY the index number. No text, no symbols, just the digit.\n\n"
+    "INSTRUCTIONS:\n"
+    "1. Find the correct option index (0, 1, 2, or 3).\n"
+    "2. If the CONTEXT is unrelated to the QUESTION, IGNORE it and reason with your own knowledge.\n"
+    "3. You MUST output exactly ONE digit (0, 1, 2, or 3).\n"
+    "4. Do NOT include any other text, symbols, or explanations.\n\n"
     "Final Option Index: "
 )
 
 MCQ_PROMPT = PromptTemplate(GENERAL_MCQ_PROMPT_STR)
 
-QA_PROMPT_TMPL_STR_MATHS = (
-    "<|im_start|>system\n"
-    "You are an elite mathematician optimized for fast, high-density MCQA solving.\n"
-    "Solve the user's multiple-choice question using a strict, ultra-concise step-by-step approach.\n\n"
-    "CRITICAL FOR SPEED:\n"
-    "1. Keep the <scratchpad> reasoning extremely dense and direct. No filler words, no repeating the question.\n"
-    "2. Write only the core mathematical steps and equations. Be brief to avoid latency timeouts.\n"
-    "3. Map your final result to the correct option index (0, 1, 2, or 3).\n\n"
-    "OUTPUT FORMAT:\n"
-    "Your output MUST follow this exact structure:\n"
-    "<scratchpad>\n"
-    "[Short, line-by-line calculations]\n"
-    "</scratchpad>\n"
-    "FINAL_INDEX: [0, 1, 2, or 3]<|im_end|>\n"
-    "<|im_start|>user\n"
+QA_PROMPT_TMPL_STR_MATHS_POT = (
+    "Solve this math problem using Python. Output ONLY one ```python code block.\n\n"
     "--- CONTEXT ---\n"
     "{context}\n"
     "----------------\n"
-    "QUESTION:\n{question}\n\n"
-    "OPTIONS:\n"
-    "{options}\n<|im_end|>\n"
-    "<|im_start|>assistant\n"
-)
-MCQ_PROMPT_MATHS = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS)
-
-QA_PROMPT_TMPL_STR_MATHS_POT = (
-    "Solve this math problem using Python. Output ONLY one ```python code block.\n\n"
-    "{context}"
     "QUESTION: {question}\n\n"
     "OPTIONS: {options}\n\n"
     "Environment (already available):\n"
@@ -51,22 +29,16 @@ QA_PROMPT_TMPL_STR_MATHS_POT = (
     "- `import math, statistics`\n"
     "- `PYTHON_OPTIONS = {options_list}` (list of option strings)\n\n"
     "Rules:\n"
+    "- If the context is unrelated to the math problem, ignore it.\n"
     "- Compute the answer numerically or symbolically.\n"
     "- Last line MUST be `print(index)` where index is 0, 1, 2, or 3.\n\n"
-    "Example:\n"
-    "```python\n"
-    "from sympy import *\n"
-    "x = symbols('x')\n"
-    "result = solve(x**2 - 4, x)\n"
-    "ans = float(max(result))\n"
-    "print(PYTHON_OPTIONS.index(str(int(ans))) if str(int(ans)) in PYTHON_OPTIONS else 0)\n"
-    "```\n\n"
     "Your solution:\n"
 )
 MCQ_PROMPT_MATHS_POT = PromptTemplate(QA_PROMPT_TMPL_STR_MATHS_POT)
 
 QA_PROMPT_TMPL_STR_MATHS_THEORY = (
-    "You are an expert in mathematical theory, history, and concepts. Answer the multiple choice question.\n\n"
+    "You are an expert in mathematical theory. Answer the multiple choice question.\n"
+    "If the CONTEXT is irrelevant, ignore it.\n\n"
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
@@ -101,7 +73,6 @@ MATH_CLASSIFIER_PROMPT_STR = (
     "A:"
 )
 
-#---------
 
 QA_PROMPT_TMPL_STR_ENTERTAINMENT = (
     "You are an expert in entertainment and pop culture. Use the context to answer the question.\n"
@@ -111,14 +82,12 @@ QA_PROMPT_TMPL_STR_ENTERTAINMENT = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
-    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "CRITICAL: If the CONTEXT is unrelated to the QUESTION, IGNORE it and use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). Do NOT include other text.\n\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_ENTERTAINMENT = PromptTemplate(QA_PROMPT_TMPL_STR_ENTERTAINMENT)
 
-#---------
 
 QA_PROMPT_TMPL_STR_SCIENCE_NATURE = ( 
     "You are an expert in science and nature. Use the context to answer the question.\n"
@@ -128,14 +97,12 @@ QA_PROMPT_TMPL_STR_SCIENCE_NATURE = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
-    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "CRITICAL: If the CONTEXT is unrelated to the QUESTION, IGNORE it and use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). Do NOT include other text.\n\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_SCIENCE_NATURE = PromptTemplate(QA_PROMPT_TMPL_STR_SCIENCE_NATURE)
 
-#---------
 
 QA_PROMPT_TMPL_STR_HISTORY_POLITICS = (
     "You are an expert in history and politics. Use the context to answer the question.\n"
@@ -145,14 +112,12 @@ QA_PROMPT_TMPL_STR_HISTORY_POLITICS = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
-    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, REASON with your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "CRITICAL: If the CONTEXT is unrelated to the QUESTION, IGNORE it and use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). Do NOT include other text.\n\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_HISTORY_POLITICS = PromptTemplate(QA_PROMPT_TMPL_STR_HISTORY_POLITICS)
 
-#---------
 
 QA_PROMPT_TMPL_STR_NEWS = (
     "You are an expert in current events and news. Use the context to answer the question.\n"
@@ -162,14 +127,12 @@ QA_PROMPT_TMPL_STR_NEWS = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
-    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, use your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "CRITICAL: If the CONTEXT is unrelated to the QUESTION, IGNORE it and use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). Do NOT include other text.\n\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_NEWS = PromptTemplate(QA_PROMPT_TMPL_STR_NEWS)
 
-#---------
 
 QA_PROMPT_TMPL_STR_PHILOSOPHY_PSYCHOLOGY = (
     "You are an expert in philosophy and psychology. Use the context to answer the question.\n"
@@ -179,14 +142,12 @@ QA_PROMPT_TMPL_STR_PHILOSOPHY_PSYCHOLOGY = (
     "QUESTION:\n{question}\n\n"
     "OPTIONS:\n{options}\n\n"
     "Output ONLY the index number (0, 1, 2, or 3) of the correct answer.\n"
-    "CRITICAL: Do NOT include any other text, words, or explanations. Just the DIGIT.\n\n"
-    "If there's NO INFORMATION about the question in the CONTEXT, use your own knowledge.\n"
-    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). NEVER refuse. NEVER say 'I cannot' or 'I don't know'. If uncertain, output your best guess as a single digit.\n"
+    "CRITICAL: If the CONTEXT is unrelated to the QUESTION, IGNORE it and use your own knowledge.\n"
+    "MANDATORY: You MUST output exactly ONE digit (0, 1, 2, or 3). Do NOT include other text.\n\n"
     "Final Option Index: "
 )
 MCQ_PROMPT_PHILOSOPHY_PSYCHOLOGY = PromptTemplate(QA_PROMPT_TMPL_STR_PHILOSOPHY_PSYCHOLOGY)
 
-#---------
 
 QUERY_TRANSLATOR_PROMPT_STR = (
     "Your task is to extract 1-3 UNIQUE search keywords from the question below.\n"

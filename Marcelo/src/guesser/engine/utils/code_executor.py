@@ -21,17 +21,45 @@ except ImportError:
 
 def _extract_code(llm_output: str) -> Optional[str]:
     """Extract Python code from LLM output, trying several patterns."""
-    # Standard ```python ... ``` block
-    m = re.search(r"```python\s+(.*?)```", llm_output, re.DOTALL | re.IGNORECASE)
+    # Standard markdown code block - prioritizing this (handles python, py, or no tag)
+    m = re.search(r"```(?:python|py)?\s*\n?(.*?)```", llm_output, re.DOTALL | re.IGNORECASE)
     if m:
-        return m.group(1)
-    # Generic ``` ... ``` block
-    m = re.search(r"```\s*(.*?)```", llm_output, re.DOTALL)
+        return m.group(1).strip()
+    
+    # Generic code block (sometimes the model forgets the first backticks or similar)
+    m = re.search(r"```\s*\n?(.*?)```", llm_output, re.DOTALL)
     if m:
-        return m.group(1)
-    # If the output looks like raw Python (has print() and no markdown prose), use it as-is
-    if "print(" in llm_output and not llm_output.strip().startswith(("#", "The", "To", "We", "A ")):
-        return llm_output
+        return m.group(1).strip()
+    
+    # Fallback: if no markdown blocks, try to identify code lines directly.
+    # We look for lines starting with key Python keywords.
+    lines = llm_output.splitlines()
+    code_lines = []
+    in_code_zone = False
+    
+    for line in lines:
+        clean_line = line.strip()
+        # Markers that strongly suggest code start
+        if any(clean_line.startswith(p) for p in ["import ", "from ", "def ", "class ", "x =", "y =", "n =", "result =", "PYTHON_OPTIONS"]):
+            in_code_zone = True
+        
+        if in_code_zone:
+            # Simple heuristic: stop if we hit something that looks like conversational text
+            # and we already have some code lines.
+            if not clean_line and code_lines: # skip empty lines but keep going
+                code_lines.append(line)
+                continue
+                
+            if code_lines and any(clean_line.startswith(p) for p in ["The ", "To ", "We ", "This ", "So "]):
+                # If we've already seen a print statement, we can likely stop.
+                if any("print(" in l for l in code_lines):
+                    break
+            
+            code_lines.append(line)
+
+    if code_lines:
+        return "\n".join(code_lines).strip()
+
     return None
 
 

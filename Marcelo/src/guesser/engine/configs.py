@@ -11,7 +11,6 @@ from src.guesser.context_db.collections import (
 from src.guesser.engine.prompts import (
     MCQ_PROMPT_ENTERTAINMENT,
     MCQ_PROMPT_HISTORY_POLITICS,
-    MCQ_PROMPT_MATHS,
     MCQ_PROMPT_MATHS_POT,
     MCQ_PROMPT_SCIENCE_NATURE,
     MCQ_PROMPT_NEWS,
@@ -21,8 +20,8 @@ from src.guesser.engine.prompts import (
 
 # Global Configs
 CHROMA_DB_PATH="./context_db"
-INFERENCE_MODEL="llama3.2:latest"
-FALLBACK_INFERENCE_MODEL="llama3.2:latest"
+INFERENCE_MODEL="gemma3:4b"
+FALLBACK_INFERENCE_MODEL="phi3.5:latest"
 TRANSLATOR_MODEL="qwen2.5:0.5b"
 EMBEDDING_MODEL="nomic-embed-text"
 MATH_INFERENCE_MODEL="qwen2-math:1.5b"
@@ -43,7 +42,7 @@ ENTERTAINMENT_CONFIG = ThemeConfig(
     fallback_model=FALLBACK_INFERENCE_MODEL,
     num_predict=5,
     top_k=1,
-    similarity_threshold=0.82,
+    similarity_threshold=0.7,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=True,
     is_rag=True
@@ -57,11 +56,12 @@ HISTORY_POLITICS_CONFIG = ThemeConfig(
     fallback_model=FALLBACK_INFERENCE_MODEL,
     num_predict=5,
     top_k=1,
-    similarity_threshold=0.88,
+    similarity_threshold=0.6,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=False,
     is_rag=False,
-    max_search_results=4
+    max_search_results=5,
+    temperature=0.2
 )
 
 SCIENCE_NATURE_CONFIG = ThemeConfig(
@@ -72,7 +72,7 @@ SCIENCE_NATURE_CONFIG = ThemeConfig(
     fallback_model=FALLBACK_INFERENCE_MODEL,
     num_predict=5,
     top_k=1,
-    similarity_threshold=0.82,
+    similarity_threshold=0.75,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=True,
     is_rag=True
@@ -87,7 +87,7 @@ MATHS_CONFIG = ThemeConfig(
     num_predict=350,
     temperature=0.1,
     top_k=2,
-    similarity_threshold=0.8,
+    similarity_threshold=0.6,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=True,
     is_rag=False,
@@ -103,11 +103,12 @@ NEWS_CONFIG = ThemeConfig(
     fallback_model=FALLBACK_INFERENCE_MODEL,
     num_predict=5,
     top_k=1,
-    similarity_threshold=0.75,
+    similarity_threshold=0.6,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=False,
     is_rag=False,
-    max_search_results=4
+    max_search_results=5,
+    temperature=0.2
 )
 
 PHILOSOPHY_PSYCHOLOGY_CONFIG = ThemeConfig(
@@ -117,8 +118,8 @@ PHILOSOPHY_PSYCHOLOGY_CONFIG = ThemeConfig(
     model_name=INFERENCE_MODEL,
     fallback_model=FALLBACK_INFERENCE_MODEL,
     num_predict=5,
-    top_k=1,
-    similarity_threshold=0.82,
+    top_k=3,
+    similarity_threshold=0.75,
     translator_model=TRANSLATOR_MODEL,
     two_vector_search=True,
     is_rag=True
