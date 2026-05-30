@@ -23,14 +23,22 @@ class CrossEncoderRAGBaseline(Guesser):
     def __init__(self, config: ExperimentConfig):
         super().__init__(config)
         
-        # 1. Bi-Encoder for
+        # 1. Bi-Encoder for retrieval
         self.bi_encoder_id = config.embedding_model
         # 2. Cross-Encoder for accurate re-ranking/classification
         self.cross_encoder_id = config.inference_model
         
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.bi_encoder = SentenceTransformer(self.bi_encoder_id, device=device)
-        self.cross_encoder = CrossEncoder(self.cross_encoder_id, device=device)
+        
+        # Ettin-1B is a significantly larger model (1B params).
+        # We use bfloat16 to reduce VRAM usage and trust_remote_code for ModernBERT architecture.
+        self.cross_encoder = CrossEncoder(
+            self.cross_encoder_id, 
+            device=device,
+            trust_remote_code=True,
+            model_kwargs={"torch_dtype": torch.bfloat16} if device == "cuda" else {}
+        )
 
     def infer_answer(self, question: Question, theme: str, game_session: Any = None) -> int:
         self.search_time = 0.0
@@ -39,17 +47,19 @@ class CrossEncoderRAGBaseline(Guesser):
         wiki = wikipediaapi.Wikipedia(user_agent='Polimillionaire', language='en')
         search_start = time.time()
 
-        # 1. Fetch sections for the Question and all Options
-        # We retrieve sections specifically for the question and also for each option to ensure coverage
+        # 1. FETCH & CONTEXTUALIZE CANDIDATE SECTIONS
         all_candidate_sections = set()
         
-        # Sections for the Question
+        # Phase 1: Search for the Question Topic
         q_title, _ = self._fetch_question_data(wiki, question.text)
-        all_candidate_sections.update(self._get_sections_for_query(wiki, question.text, exclude_title=None))
+        if q_title:
+            all_candidate_sections.update(self._get_sections_for_query(wiki, q_title))
         
-        # Sections for each Option
+        # Phase 2: Expanded Search for each Option
+        # We context-anchor the option search using the question's main article title (e.g., "2 - Adele")
         for option in question.options:
-            all_candidate_sections.update(self._get_sections_for_query(wiki, f"{option.text} {question.text}", exclude_title=q_title))
+            search_query = f"{option.text} {q_title}" if q_title else f"{option.text} {question.text}"
+            all_candidate_sections.update(self._get_sections_for_query(wiki, search_query))
 
         candidate_sections = list(all_candidate_sections)
         self.search_time = time.time() - search_start
@@ -59,10 +69,10 @@ class CrossEncoderRAGBaseline(Guesser):
             model_inputs = [(question.text, option.text) for option in question.options]
             scores = self.cross_encoder.predict(model_inputs, activation_fn=torch.nn.Sigmoid())
             best_option_idx = np.argmax(scores)
-            best_overall_score = scores[best_option_idx]
         else:
-            # 2. STEP 1: RETRIEVAL (Bi-Encoder) - Filter down to top sections globally
-            TOP_K_RETRIEVAL = 10
+            # 2. STEP 1: RETRIEVAL (Bi-Encoder)
+            # Filter a large pool of sections down to the top K globally for re-ranking
+            TOP_K_RETRIEVAL = 15
             with torch.no_grad():
                 question_emb = self.bi_encoder.encode(question.text, convert_to_tensor=True)
                 section_embeddings = self.bi_encoder.encode(candidate_sections, convert_to_tensor=True)
@@ -72,31 +82,35 @@ class CrossEncoderRAGBaseline(Guesser):
                 top_indices = torch.topk(cos_scores, k=top_k).indices.cpu().numpy()
                 top_sections = [candidate_sections[i] for i in top_indices]
 
-            # 3. STEP 2: RE-RANKING (Cross-Encoder) - Batch predict all (Option, Section) pairs
-            # We want to find the max score for each option across all top sections
+            # 3. STEP 2: RE-RANKING (Cross-Encoder)
+            # We use an NLI-style declarative statement ("Answer is Option") to verify against context
             all_pairs = []
             for option in question.options:
+                statement = f"The answer to '{question.text}' is {option.text}."
                 for section in top_sections:
-                    all_pairs.append((question.text, f"{option.text}. {section}"))
+                    all_pairs.append((statement, section))
             
-            print(f"[Cross-RAG] Batch predicting {len(all_pairs)} pairs...")
-            # activation_fct=torch.nn.Sigmoid() ensures scores are in [0, 1]
-            all_scores = self.cross_encoder.predict(all_pairs, activation_fn=torch.nn.Sigmoid(), batch_size=32)
+            print(f"[Cross-RAG] Batch predicting {len(all_pairs)} pairs using Ettin-1B...")
+            all_scores = self.cross_encoder.predict(all_pairs, activation_fn=torch.nn.Sigmoid(), batch_size=4)
             
-            # Reshape scores to (num_options, num_sections) and take the max per option
+            # Reshape scores to (num_options, num_sections)
             all_scores = all_scores.reshape(len(question.options), len(top_sections))
-            option_max_scores = np.max(all_scores, axis=1)
             
-            for opt_idx, score in enumerate(option_max_scores):
-                print(f"  Option {opt_idx} ({question.options[opt_idx].text[:20]}...): Confidence = {score:.4f}")
+            # 4. SCORE AGGREGATION
+            # Sum the top 3 scores per option to find the most consistently supported answer
+            option_final_scores = []
+            for opt_idx in range(len(question.options)):
+                opt_scores = all_scores[opt_idx]
+                top_3_sum = np.sum(np.sort(opt_scores)[-3:])
+                option_final_scores.append(top_3_sum)
+                print(f"  Option {opt_idx} ({question.options[opt_idx].text[:20]}...): Aggregate Confidence = {top_3_sum:.4f}")
             
-            best_option_idx = np.argmax(option_max_scores)
-            best_overall_score = option_max_scores[best_option_idx]
+            best_option_idx = np.argmax(option_final_scores)
 
         self.reasoning_time = time.time() - start_time - self.search_time
 
         print(f"[Cross-RAG] Search & Reasoning took {self.search_time + self.reasoning_time:.2f}s")
-        print(f"[Cross-RAG] Selected Option {best_option_idx} with Confidence: {best_overall_score:.4f}")
+        print(f"[Cross-RAG] Selected Option {best_option_idx}")
 
         return question.options[best_option_idx].id
 
@@ -111,20 +125,15 @@ class CrossEncoderRAGBaseline(Guesser):
             print(f"[Cross-RAG] Error searching for question: {e}")
         return "", ""
 
-    def _get_sections_for_query(self, wiki: wikipediaapi.Wikipedia, query: str, exclude_title: str = None) -> list[str]:
-        """Retrieves sections from Wikipedia for a given query."""
+    def _get_sections_for_query(self, wiki: wikipediaapi.Wikipedia, query: str) -> list[str]:
+        """Retrieves contextualized sections from Wikipedia for a given query."""
         try:
             TOP_N_PAGES = 1
             results = wiki.search(query)
             if not results.pages:
                 return []
 
-            top_titles = []
-            for title in results.pages.keys():
-                if title != exclude_title:
-                    top_titles.append(title)
-                if len(top_titles) == TOP_N_PAGES:
-                    break
+            top_titles = list(results.pages.keys())[:TOP_N_PAGES]
             
             sections = []
             for title in top_titles:
@@ -136,13 +145,13 @@ class CrossEncoderRAGBaseline(Guesser):
             return []
 
     def _get_page_sections(self, page: wikipediaapi.WikipediaPage) -> list[str]:
-        """Extracts clean text sections from a Wikipedia page."""
-        sections_text = [page.summary]
+        """Extracts clean text sections from a Wikipedia page with context headers."""
+        sections_text = [f"[{page.title}] {page.summary}"]
         exclude = {"See also", "References", "Further reading", "External links", "Notes", "Sources", "Bibliography", "Gallery"}
         
         for s in page.sections:
             if s.title not in exclude and s.text.strip():
-                sections_text.append(s.text)
+                sections_text.append(f"[{page.title} - {s.title}] {s.text}")
         return sections_text
 
 
@@ -162,13 +171,13 @@ def play_cross_rag_baseline():
 
     config_rag = ExperimentConfig(
         username="Luca",
-        notes="Retrieve & Re-rank RAG (Bi-Encoder + Cross-Encoder)",
+        notes="Retrieve & Re-rank RAG (Bi-Encoder + Ettin-1B Reranker)",
         approach=ApproachType.RAG,
         is_rag=True,
         embedding_model="nomic-ai/nomic-embed-text-v1.5",
         embedding_model_size=0.1, # 0.1B
-        inference_model="cross-encoder/ms-marco-MiniLM-L12-v2",
-        inference_model_size=0.033, # 33.4M
+        inference_model="cross-encoder/ettin-reranker-1b-v1",
+        inference_model_size=1.0, # 1B
     )
     baseline_rag = CrossEncoderRAGBaseline(config_rag)
     benchmark_rag = Benchmark(config_rag, baseline_rag, client)
