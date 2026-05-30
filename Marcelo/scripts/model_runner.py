@@ -127,7 +127,7 @@ EXPERIMENTS = [
 DEFAULT_GAMES_PER_THEME = 2
 
 # All experiment results are appended to this single file.
-OUTPUT_FILE = "Marcelo/model_comparison.xlsx"
+OUTPUT_FILE = "results/model_comparison.xlsx"
 
 # ─────────────────────────────────────────────────────────────────────────────
 # END OF CONFIGURABLE SECTION — no need to edit below
@@ -140,8 +140,12 @@ import time
 
 # Allow running as a script from the project root
 _MARCELO = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+import sys
+import os
+import time
 
 # Ensure the root directory and Marcelo implementation are in sys.path
+# This handles the namespace package merging for 'src'
 scripts_dir = os.path.dirname(os.path.abspath(__file__))
 marcelo_dir = os.path.abspath(os.path.join(scripts_dir, ".."))
 project_root = os.path.abspath(os.path.join(marcelo_dir, ".."))
@@ -160,7 +164,7 @@ from src.guesser.marcelo_guesser import MarceloGuesser
 # ── Ollama helpers ─────────────────────────────────────────────────────────
 
 def _get_loaded_models() -> list[str]:
-    """Return the list of model names currently loaded in Ollama."""
+    """Return the list of model names currently loaded in Ollam'a."""
     try:
         result = subprocess.run(
             ["ollama", "ps"],
