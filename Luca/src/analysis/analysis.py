@@ -52,6 +52,8 @@ class Analysis:
             "Ancient History and Politics": "ancient_history",
             "Science and Nature": "science_nature",
             "Maths": "maths",
+            "News": "news",
+            "Philosophy and Psychology": "philosophy_psychology",
         }
 
         for theme_name, stats in theme_stats.items():

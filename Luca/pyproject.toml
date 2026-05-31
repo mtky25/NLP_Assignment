@@ -7,7 +7,9 @@ requires-python = ">=3.14"
 dependencies = [
     "accelerate>=1.13.0",
     "bitsandbytes>=0.49.2",
+    "einops>=0.8.2",
     "librosa>=0.11.0",
+    "matplotlib>=3.10.9",
     "openai-whisper>=20250625",
     "openpyxl>=3.1.5",
     "pandas>=3.0.3",

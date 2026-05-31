@@ -104,52 +104,29 @@ class Guesser(ABC):
             return ""
 
     def _post_process_text(self, text: str) -> str:
-        """Advanced filtering of speech artifacts, laughter, and false option prefixes."""
+        """Filter speech artifacts, laughter, and false option prefixes using consolidated patterns."""
         
         text = text.strip()
         
-        # 1. Remove repeated word/character patterns (3 or more) like "ha ha ha" or "C-C-C-C"
-        # Matches a word followed by 2 or more repetitions of the same word (with space/hyphen)
-        text = re.sub(r'(\b\w+)\b([- ]?\1\b){2,}', '', text, flags=re.IGNORECASE)
-        
-        # 2. Remove common laughter patterns not caught by the repetition regex
-        text = re.sub(r'\b(ha|he|hi|ho|ah)\b', '', text, flags=re.IGNORECASE)
-
-        # 3. Aggressive removal of "Option X" style prefixes at the START
-        # Catches: "Option A", "options see", "Pop's in B", "Topsy and D", "Top-ion D", etc.
-        # Logic: find variations of "Option", "Top*", "Pop*" at the start and remove everything up to the first A, B, C, or D.
-        text = re.sub(r'^(options?|top\w*|pop\w*).*?\b([abcd]|see|sea)\b[\s,.;:?!-]*', '', text, flags=re.IGNORECASE)
-
-        # 4. Remove word-based prefixes that might appear elsewhere or weren't caught by the start regex
-        text = re.sub(r'\b(options?|topst?ion|topson|topption|pops)\b(\s+and)?\s*\w+[\s,.;:?!]*', '', text, flags=re.IGNORECASE)
-        text = re.sub(r'\b(topst?ion|topson|topption|pops)\w+\b', '', text, flags=re.IGNORECASE)
-        
-        # 5. Remove "Topsyn*" false transcriptions (removes only that word)
-        text = re.sub(r'\btopsynd\w*\b', '', text, flags=re.IGNORECASE)
-
-        # 6. Original filler regex (e.g., um, uhm, hmm)
-        # Starts with [aoumh] and followed by one or more [hm], excluding "am"
-        filler_regex = r'\b(?!am\b)[aoumh][hm]+\b'
-        text = re.sub(filler_regex, '', text, flags=re.IGNORECASE)
-        
-        # 7. Whisper artifacts and final cleanup
-        # Remove parenthetical or bracketed text, but try to preserve content if it wraps the whole thing
-        # If the entire text is wrapped in () or [], strip them
+        # 1. Remove bracketed text (Whisper artifacts) unless it wraps the entire string
         if (text.startswith('(') and text.endswith(')')) or (text.startswith('[') and text.endswith(']')):
-            text = text[1:-1].strip()
+            text = text[1:-1]
+        text = re.sub(r'[\[\(].*?[\]\)]', '', text)
+
+        # 2. Apply aggressive consolidated regex patterns sequentially
+        patterns = [
+            r'(\b\w+)\b([- ]?\1\b){2,}',                                         # Repeated words (3+ times)
+            r'^(?:options?|[tp]op\w*).*?\b(?:[a-d]|see|sea)\b',                 # Start-of-sentence prefix mishears
+            r'\b(?:options?|topst?ion|topson|topption|pops|topsynd)\w*\b(?:\s+(?:and\s+)?\w+)?', # Stray false options
+            r'\b(?:duh|uh|um|uhm|ah|ha|he|hi|ho|hm+)\b(?:\s+(?:duh|uh|um|uhm|ah|ha|he|hi|ho|hm+)\b)*' # Fillers & stuttering
+        ]
+        
+        for pattern in patterns:
+            text = re.sub(pattern, '', text, flags=re.IGNORECASE)
             
-        # Remove any remaining nested brackets/parentheses
-        text = re.sub(r'\[.*?\]', '', text)
-        text = re.sub(r'\(.*?\)', '', text)
-        
-        # Clean up multiple spaces and strip
-        text = re.sub(r'\s+', ' ', text).strip()
-        
-        # Remove leading/trailing punctuation leftovers that might remain after prefix removal
-        # Specifically targets "., !" and other punctuation at the start or end
-        text = re.sub(r'^[\s,.;:?!-]+|[\s,.;:?!-]+$', '', text)
-        
-        return text
+        # 3. Clean up formatting: multiple spaces and leading/trailing punctuation
+        text = re.sub(r'\s+', ' ', text)
+        return re.sub(r'^[\s,.;:?!-]+|[\s,.;:?!-]+$', '', text).strip()
 
     def get_speech_question(self, game_session: Any) -> Question:
         """

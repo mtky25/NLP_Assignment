@@ -16,7 +16,7 @@ class BertBaselineSpeech(Guesser):
     A Baseline Guesser using a BERT sentence transformer
     The option with the highest cosine similarity to the question is chosen
     """
-    def __init__(self, config: ExperimentConfig, mode:str = "speech", transcription_model="base"):
+    def __init__(self, config: ExperimentConfig, mode:str = "speech", transcription_model="tiny"):
         super().__init__(config, mode=mode, transcription_model=transcription_model)
         device = "cuda" if torch.cuda.is_available() else "cpu"
         self.model_id = config.embedding_model
@@ -56,7 +56,7 @@ def play_baseline():
     API_URL = "http://131.175.15.22:51111/"
     USERNAME = os.getenv("POLI_USERNAME", "")
     PASSWORD = os.getenv("POLI_PASSWORD", "")
-    ATTEMPTS_PER_COMPETITION = 2
+    ATTEMPTS_PER_COMPETITION = 1
     
     client = MillionaireClient(API_URL)
     try:
