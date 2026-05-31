@@ -21,7 +21,7 @@ def extract_size(model_name):
 sheets_dir = "../plots/sheets/"
 # approach_name -> {text_file, speech_file, type}
 approaches_config = {
-    "Sentence Transformer only(+ Wikipedia RAG)": {
+    "Sentence Transformer only (+ Wikipedia RAG)": {
         "text": ("bi_cross_encoder_text.xlsx", "excel"),
         "speech": ("bi_cross_encoder_speech.xlsx", "excel")
     },
@@ -40,13 +40,13 @@ cat_label_map = {
     'science_nature_mean_question_accuracy': 'Science',
     'maths_mean_question_accuracy': 'Maths',
     'news_mean_question_accuracy': 'News',
-    'philosophy_psychology_mean_question_accuracy': 'Philo',
+    'philosophy_psychology_mean_question_accuracy': 'Philosophy',
     'Ent Acc.': 'Entertainment',
     'Sci Acc.': 'Science',
     'Anc Acc.': 'History',
     'Math Acc.': 'Maths',
     'News Acc.': 'News',
-    'Phil Acc.': 'Philo'
+    'Phil Acc.': 'Philosophy'
 }
 
 cat_cols_std = [
@@ -166,8 +166,20 @@ tick_labels = [f"{int(t)}B" for t in ticks]
 # Shared plotting parameters
 GROUP_OFFSET = 0.2 # Increased offset for better separation in log space
 
+# Unified Color Palette (Pleasant Pastels)
+C_RED = '#e3bcc1'    # Speech Mode, Total Time, Approach 1
+C_BLUE = '#99c9df'   # Text Mode, Reasoning, Approach 2
+C_GREEN = '#c8f8e8'  # Search, Approach 3
+C_ORANGE = '#ffdfbf' # Transcription
+C_PURPLE = '#C1A7E2' # Category 5
+C_GOLD = '#91979e'   # Category 6
+
+APPROACH_COLORS = [C_RED, C_BLUE, C_GREEN]
+CAT_COLORS = [C_RED, C_BLUE, C_GREEN, C_ORANGE, C_PURPLE, C_GOLD]
+TIMING_COLORS = [C_ORANGE, C_GREEN, C_BLUE, C_RED] # Transcription, Search, Reasoning, Total
+
 # --- Plot 1: Box Plot (Original) ---
-fig1, ax1 = plt.subplots(figsize=(12, 7))
+fig1, ax1 = plt.subplots(figsize=(14, 8))
 ax1.set_xscale('log')
 ax1.axhline(y=random_baseline, color='grey', linestyle='--', alpha=0.6, label=f'Random Guesser Baseline\nMean Acc: {random_baseline:.3f}')
 
@@ -181,7 +193,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
 
     width = 0.2 * pos_plot
     bp = ax1.boxplot([item['category_accs']], positions=[pos_plot], widths=width, patch_artist=True, medianprops={'visible': False})
-    color = plt.cm.viridis(i / len(sorted_text_best_with_meta))
+    color = APPROACH_COLORS[i % len(APPROACH_COLORS)]
     for patch in bp['boxes']:
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
@@ -204,8 +216,7 @@ fig2, ax2 = plt.subplots(figsize=(14, 8))
 ax2.set_xscale('log')
 ax2.axhline(y=random_baseline, color='grey', linestyle='--', alpha=0.6, label=f'Random Guesser Baseline ({random_baseline:.3f})')
 unique_categories = sorted(list(set(cat for item in sorted_text_best for cat, acc in item['category_results'])))
-cat_colors = plt.cm.Set2(np.linspace(0, 1, len(unique_categories)))
-cat_color_map = {cat: color for cat, color in zip(unique_categories, cat_colors)}
+cat_color_map = {cat: color for cat, color in zip(unique_categories, CAT_COLORS)}
 num_cats = len(unique_categories)
 log_width_cat = 0.04 
 
@@ -262,7 +273,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
     width = text_pos * 0.1
     bp_text = ax3.boxplot([approach["text"]["category_accs"]], positions=[text_pos], widths=width, patch_artist=True, medianprops={'visible': False})
     for patch in bp_text['boxes']:
-        patch.set_facecolor('#66b3ff') # Blue for text
+        patch.set_facecolor(C_BLUE) # Blue for text
         patch.set_alpha(0.7)
         if i == 0: patch.set_label('Text Mode')
     
@@ -270,7 +281,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
     speech_pos = 10**(center_pos + 0.05)
     bp_speech = ax3.boxplot([approach["speech"]["category_accs"]], positions=[speech_pos], widths=width, patch_artist=True, medianprops={'visible': False})
     for patch in bp_speech['boxes']:
-        patch.set_facecolor('#ff9999') # Red for speech
+        patch.set_facecolor(C_RED) # Red for speech
         patch.set_alpha(0.7)
         if i == 0: patch.set_label('Speech Mode')
     
@@ -298,7 +309,6 @@ ax4.axhline(y=30, color='red', linestyle='--', alpha=0.6, label='30s Time Limit'
 
 time_categories = ['transcription', 'search', 'reasoning', 'total']
 time_labels = ['Transcription', 'Search', 'Reasoning', 'Total Time']
-time_colors = ['#ffcc99', '#99ff99', '#99ccff', '#ff9999']
 num_time_cats = len(time_categories)
 log_width_time = 0.06
 
@@ -327,7 +337,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
         bar_pos = 10**(start_pos + j * log_width_time + log_width_time/2)
         bar_width = bar_pos * 0.1 # Restored original width (10% of position)
         
-        ax4.bar(bar_pos, mean_val, width=bar_width, color=time_colors[j], label=time_labels[j] if i == 0 else "")
+        ax4.bar(bar_pos, mean_val, width=bar_width, color=TIMING_COLORS[j], label=time_labels[j] if i == 0 else "")
         
         if cat_vals and len(cat_vals) > 0:
             ymin = min(cat_vals)
