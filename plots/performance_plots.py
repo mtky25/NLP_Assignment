@@ -141,7 +141,7 @@ tick_labels = [f"{int(t)}B" for t in ticks]
 # --- Plot 1: Box Plot (Original) ---
 fig1, ax1 = plt.subplots(figsize=(12, 7))
 ax1.set_xscale('log')
-ax1.axhline(y=random_baseline, color='grey', linestyle='--', alpha=0.6, label=f'Random Baseline (Mean Acc: {random_baseline:.3f})')
+ax1.axhline(y=random_baseline, color='grey', linestyle='--', alpha=0.6, label=f'Random Baseline\nMean Acc: {random_baseline:.3f}')
 
 for i, approach in enumerate(sorted_text_best_with_meta):
     item = approach["text"]
@@ -156,7 +156,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
     for patch in bp['boxes']:
         patch.set_facecolor(color)
         patch.set_alpha(0.7)
-        patch.set_label(f"{approach['name']} (Mean Acc: {item['overall_acc']:.3f})")
+        patch.set_label(f"{approach['name']}\nMean Acc: {item['overall_acc']:.3f}")
 
 ax1.set_xlabel('Model Size (Billion Parameters) - Log Scale')
 ax1.set_ylabel('Accuracy')
@@ -194,9 +194,13 @@ for i, approach in enumerate(sorted_text_best_with_meta):
             bar_width = bar_pos * 0.08 
             ax2.bar(bar_pos, acc, width=bar_width, color=cat_color_map[cat], label=cat if i == 0 else "") 
 
+    # Add approach label above/near the bars
+    ax2.text(10**center_pos, max(item['category_accs']) + 0.02,
+             approach["name"].replace('\n', ' '), ha='center', va='bottom', fontsize=9)
+
 ax2.set_xlabel('Model Size (Billion Parameters) - Log Scale')
 ax2.set_ylabel('Accuracy')
-ax2.set_title('Model Performance per Category')
+ax2.set_title('Model Performance per Category (text mode)')
 ax2.grid(True, which="both", ls="-", alpha=0.2)
 ax2.set_ylim(0, 1.05)
 ax2.set_xticks(ticks)
@@ -221,7 +225,6 @@ for i, approach in enumerate(sorted_text_best_with_meta):
         continue
     
     pos = approach["text"]["size"]
-    # Jitter if same size
     same_size_count = sum(1 for x in sorted_text_best_with_meta[:i] if x['text']['size'] == pos)
     center_pos = np.log10(pos) + (same_size_count * 0.4)
     
@@ -253,7 +256,7 @@ ax3.grid(True, which="both", ls="-", alpha=0.2)
 ax3.set_ylim(0, 1.1)
 ax3.set_xticks(ticks)
 ax3.set_xticklabels(tick_labels, rotation=45)
-ax3.legend(loc='upper right')
+ax3.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 plt.tight_layout()
 plt.savefig('text_vs_speech_comparison.png')
 
