@@ -200,7 +200,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
         patch.set_label(f"{approach['name']}\nMean Acc: {item['overall_acc']:.3f}")
 
 ax1.set_xlabel('Model Size (Billion Parameters) - Log Scale')
-ax1.set_ylabel('Accuracy')
+ax1.set_ylabel('Question Accuracy')
 ax1.set_title('Model Performance vs. Model Size (text mode)')
 ax1.grid(True, which="both", ls="-", alpha=0.3)
 ax1.set_ylim(0, 1.05)
@@ -239,7 +239,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
              approach["name"].replace('\n', ' '), ha='center', va='bottom', fontsize=9)
 
 ax2.set_xlabel('Model Size (Billion Parameters) - Log Scale')
-ax2.set_ylabel('Accuracy')
+ax2.set_ylabel('Question Accuracy')
 ax2.set_title('Model Performance per Category (text mode)')
 ax2.grid(True, which="both", ls="-", alpha=0.2)
 ax2.set_ylim(0, 1.05)
@@ -291,7 +291,7 @@ for i, approach in enumerate(sorted_text_best_with_meta):
              approach["name"].replace('\n', ' '), ha='center', va='bottom', fontsize=9)
 
 ax3.set_xlabel('Model Size (Billion Parameters) - Log Scale')
-ax3.set_ylabel('Accuracy')
+ax3.set_ylabel('Question Accuracy')
 ax3.set_title('Text Mode vs. Speech Mode - Performance Comparison')
 ax3.grid(True, which="both", ls="-", alpha=0.2)
 ax3.set_ylim(0, 1.1)
