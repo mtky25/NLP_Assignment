@@ -205,7 +205,8 @@ ax2.grid(True, which="both", ls="-", alpha=0.2)
 ax2.set_ylim(0, 1.05)
 ax2.set_xticks(ticks)
 ax2.set_xticklabels(tick_labels, rotation=45)
-ax2.set_xlim(min(ticks) * 0.6, max(ticks) * 2.5) 
+# Set consistent x-limits with more margin for labels
+ax2.set_xlim(min(ticks) * 0.4, max(ticks) * 2.5)
 handles, labels = ax2.get_legend_handles_labels()
 unique_handles_labels = {}
 for h, l in zip(handles, labels):
@@ -256,6 +257,8 @@ ax3.grid(True, which="both", ls="-", alpha=0.2)
 ax3.set_ylim(0, 1.1)
 ax3.set_xticks(ticks)
 ax3.set_xticklabels(tick_labels, rotation=45)
+# Set consistent x-limits with more margin for labels
+ax3.set_xlim(min(ticks) * 0.4, max(ticks) * 2.5)
 ax3.legend(loc='upper left', bbox_to_anchor=(1.05, 1))
 plt.tight_layout()
 plt.savefig('text_vs_speech_comparison.png')
