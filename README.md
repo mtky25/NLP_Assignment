@@ -139,13 +139,13 @@ A `Router` maps each competition theme to a strategy: Entertainment and Science/
 ### Albana - One single LLM multi-pipeline
 
 Three-branch pipeline running Mistral-7B-Instruct-v0.3 on a Google Colab notebook environment.
-See []
+See [Albana/albana_notebook.ipynb]
 
-- **Wikipedia Sniper (General Trivia)** — High-efficiency context retrieval agent utilizing Mistral to parse and extract dense, high-signal background context from Wikipedia endpoints to answer general-knowledge questions.
+- **Wikipedia Sniper (General Trivia)** — Mistral extracts dense keyword context via a custom automated information retrieval agent and an option-matching semantic paragraph re-ranker to resolve general-knowledge trivia.
 
-- **News via Guardian API** — Multi-stage RAG pipeline hitting the Guardian Open Platform. Features a context-blind "Surgical Planner" for keyword extraction, a Temporal Filter for ISO date windows, and an "Option Radar" semantic re-ranker with mathematical multipliers (+10/+3) to prioritize answer-matching paragraphs.
+- **News via Guardian API** — same pipeline as the previous case, but using Guardian API and ISO date-parsed temporal filtering.
 
-- **Agentic Math Engine (ReAct Pipeline)** — A ReAct tool-calling framework that bypasses LLM innumeracy. Dynamically routes queries via JSON schema constraints ("BANS" and "TRIGGERS") to either `execute_secure_python` (sandboxed execution using `numpy`, `scipy`, `sympy`, and `networkx`) or a search_math_theory adaptive web crawler. Guarded by a JSON Auto-Healer and a tolerance-based structural float evaluator (`math.isclose`).
+- **Agentic Math Engine (ReAct Pipeline)** — ReAct tool-calling framework routing to a sandboxed Python execution kernel (`numpy`, `scipy`, `sympy`, `networkx`) or a theoretical web crawler, guarded by a JSON auto-healer and tolerance-based (`math.isclose`) float evaluator.
 
 ## 5. Setup & running
 
