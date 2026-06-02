@@ -136,10 +136,10 @@ A `Router` maps each competition theme to a strategy: Entertainment and Science/
 
 ---
 
-### Albana - One single LLM multi-pipeline
+### Albana - One single LLM multi-pipeline (`Albana/`)
 
 Three-branch pipeline running Mistral-7B-Instruct-v0.3 on a Google Colab notebook environment.
-See [Albana/albana_notebook.ipynb]
+See [`Albana/albana_notebook.ipynb`]
 
 - **Wikipedia Sniper (General Trivia)** — Mistral extracts dense keyword context via a custom automated information retrieval agent and an option-matching semantic paragraph re-ranker to resolve general-knowledge trivia.
 
