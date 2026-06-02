@@ -56,7 +56,7 @@ NLP_Assignment/
 ├── Luca/                       # Sentence Transformer baselines
 ├── Gianpaolo/                  # Theme-routed RAG on Colab T4
 ├── Marcelo/                    # Offline hybrid RAG with ChromaDB
-├── Albana/                     # 
+├── Albana/                     # Theme-routed RAG on Colab T4 with single LLM
 │
 ├── plots/                      # Performance plots
 └── benchmark_results.xlsx      # Aggregated results (auto-generated)
@@ -135,6 +135,17 @@ See [`Marcelo/marcelo_notebook.ipynb`](Marcelo/marcelo_notebook.ipynb) and [`Mar
 A `Router` maps each competition theme to a strategy: Entertainment and Science/Nature use RAG against a pre-built [ChromaDB](https://www.trychroma.com/) store (`gemma3:4b`); Ancient History falls back to live web search (`phi3.5`); Maths uses **Program-of-Thought** — `qwen2-math:1.5b` generates Python code that is executed to compute the answer. Questions are first translated into retrieval-friendly keywords by a `qwen2.5:0.5b` model before hitting the vector store.
 
 ---
+
+### Albana - One single LLM multi-pipeline
+
+Three-branch pipeline running Mistral-7B-Instruct-v0.3 on a Google Colab notebook environment.
+See []
+
+- **Wikipedia Sniper (General Trivia)** — High-efficiency context retrieval agent utilizing Mistral to parse and extract dense, high-signal background context from Wikipedia endpoints to answer general-knowledge questions.
+
+- **News via Guardian API** — Multi-stage RAG pipeline hitting the Guardian Open Platform. Features a context-blind "Surgical Planner" for keyword extraction, a Temporal Filter for ISO date windows, and an "Option Radar" semantic re-ranker with mathematical multipliers (+10/+3) to prioritize answer-matching paragraphs.
+
+- **Agentic Math Engine (ReAct Pipeline)** — A ReAct tool-calling framework that bypasses LLM innumeracy. Dynamically routes queries via JSON schema constraints ("BANS" and "TRIGGERS") to either `execute_secure_python` (sandboxed execution using `numpy`, `scipy`, `sympy`, and `networkx`) or a search_math_theory adaptive web crawler. Guarded by a JSON Auto-Healer and a tolerance-based structural float evaluator (`math.isclose`).
 
 ## 5. Setup & running
 
